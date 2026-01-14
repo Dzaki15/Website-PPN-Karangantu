@@ -2,7 +2,7 @@
   "name": "website-ppn-karangantu",
   "private": true,
   "scripts": {
-    "postinstall": "npm --prefix server ci || npm --prefix server install",
+    "postinstall": "npm --prefix server ci --omit=optional || npm --prefix server install --omit=optional",
     "start": "node server/server.js"
   },
   "engines": {
