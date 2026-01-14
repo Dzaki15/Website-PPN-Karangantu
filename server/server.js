@@ -962,6 +962,6 @@ app.get('/api/es', auth, (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[server] Backend listening on 0.0.0.0:${PORT}`);
 });

@@ -1,0 +1,11 @@
+{
+  "name": "website-ppn-karangantu",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix server ci || npm --prefix server install",
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
