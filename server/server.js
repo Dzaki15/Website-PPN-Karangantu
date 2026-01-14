@@ -10,6 +10,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { generatePbPdf } from './tools/generate-pb-pdf.js';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import zlib from 'node:zlib';
@@ -104,24 +105,28 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
 }
 
 // Serve static site (frontend)
-// This repo contains duplicated frontend folders; prefer the folder that actually contains index.html/home.html.
-const staticCandidates = [
-  // Most common: frontend is the parent folder of /server
-  path.join(process.cwd(), '..'),
-  // Legacy: sometimes nested one level deeper
-  path.join(process.cwd(), '..', 'Website PPN Karangantu')
-];
+// In production (Railway), the working directory can vary; resolve paths relative to this file.
+const serverDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(serverDir, '..');
 
-let staticDir = process.env.STATIC_DIR;
-if(!staticDir){
-  staticDir = staticCandidates.find((dir) => {
-    try {
-      return fs.existsSync(path.join(dir, 'index.html')) || fs.existsSync(path.join(dir, 'home.html'));
-    } catch (e) {
-      return false;
-    }
-  }) || staticCandidates[0];
-}
+const staticCandidates = [
+  process.env.STATIC_DIR ? path.resolve(process.env.STATIC_DIR) : null,
+  repoRoot,
+  path.resolve(process.cwd()),
+  path.resolve(process.cwd(), '..')
+].filter(Boolean);
+
+const staticDir = staticCandidates.find((dir) => {
+  try {
+    return (
+      fs.existsSync(path.join(dir, 'index.html')) ||
+      fs.existsSync(path.join(dir, 'home.html')) ||
+      fs.existsSync(path.join(dir, 'welcome.html'))
+    );
+  } catch {
+    return false;
+  }
+}) || repoRoot;
 
 console.log('[server] Serving static from:', staticDir);
 app.use(express.static(staticDir));
