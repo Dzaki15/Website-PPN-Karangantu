@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Preview Dokumen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .preview-container {
+      background: white;
+      border: 3px solid var(--primary);
+      border-radius: 14px;
+      padding: 24px;
+      margin: 20px 0;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .pdf-viewer {
+      width: 100%;
+      min-height: 380px;
+      max-height: 760px;
+      overflow: auto;
+      border-radius: 10px;
+      background: transparent;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    /* container for rendered pages */
+    #pdfPages { width: 100%; display:flex; flex-direction:column; gap:18px; align-items:center; }
+    .pdf-page-placeholder {
+      width: 800px; max-width:100%; min-height:420px; background:#f3f3f3; border-radius:8px; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.03);
+    }
+    .pdf-page-placeholder canvas{ display:block; width:100%; height:auto; border-radius:6px; background:white; }
+    /* highlight animation for navigated-to page */
+    .page-highlight{
+      box-shadow: 0 0 0 4px rgba(20,150,140,0.12), 0 8px 20px rgba(0,0,0,0.08) !important;
+      transform: scale(1.01);
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .btn-action {
+      width: 100%;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 18px;
+    }
+    .btn.download {
+      background: var(--primary);
+      color: white;
+    }
+    .btn.save {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .btn.home {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body class="page preview-page">
+  <header class="topbar">
+    <button class="back-btn" onclick="navigateWithFade('pb-signature.html')">←</button>
+    <h2 style="margin:0; font-size:18px;">Preview Dokumen</h2>
+  </header>
+
+  <main class="container">
+    <div class="preview-container">
+      <h3 class="doc-title">Pratinjau Dokumen</h3>
+      <div style="width:100%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:13px;color:#444;">Prefetch halaman ±</label>
+          <input id="prefetchRangeInput" type="number" min="0" max="5" value="1" style="width:64px;padding:6px;border-radius:6px;border:1px solid #ddd;text-align:center;" />
+          <small style="color:#666;">(halaman sebelum/sesudah yang akan dirender otomatis)</small>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:12px;">
+          <label style="font-size:13px;color:#444;">Simpan cache ±</label>
+          <input id="cacheWindowInput" type="number" min="1" max="20" value="3" style="width:64px;padding:6px;border-radius:6px;border:1px solid #ddd;text-align:center;" />
+          <small style="color:#666;">(berapa halaman di sekitar yang disimpan di memori)</small>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+          <button id="prevPageBtn" class="btn" style="padding:6px 10px;border-radius:6px;">⟨ Prev</button>
+          <div id="pageIndicator" style="font-size:13px;color:#333;min-width:120px;text-align:center;">Halaman 0 / 0</div>
+          <button id="nextPageBtn" class="btn" style="padding:6px 10px;border-radius:6px;">Next ⟩</button>
+        </div>
+      </div>
+      <!-- PDF.js powered viewer (canvas) - no thumbnail sidebar, fit-to-width by default -->
+      <div id="pdfContainer" class="pdf-viewer" style="display:block;overflow:auto;background:#f6f6f6;padding:16px;">
+        <div id="pdfPages" style="display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;"></div>
+      </div>
+    </div>
+
+    <button type="button" class="btn download btn-action" onclick="downloadPDF()">
+      Download PDF
+    </button>
+
+    <button type="button" class="btn download btn-action" onclick="openServerPdf()" title="Open server-generated PDF in new tab">
+      <span style="font-size:20px">📄</span>
+      Preview (Server)
+    </button>
+
+    <button type="button" class="btn save btn-action" onclick="saveToArchive()">
+      <span style="font-size:24px">🔖</span>
+      Simpan & Ajukan
+    </button>
+
+    <button type="button" class="btn home btn-action" onclick="navigateWithFade('home.html')">
+      Home
+    </button>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="js/pb-pdf-builder.js"></script>
+  <!-- PDF.js (viewer without sidebar). We use CDN builds for convenience. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    const FALLBACK_REQUIREMENTS = [
+      'surat pernyataan kesiapan Kapal Perikanan berangkat dari Nakhoda (Master Sailing Declaration);',
+      'bukti pemenuhan pembayaran pajak pertambahan nilai, bagi Kapal Perikanan yang menggunakan bahan bakar minyak nonsubsidi;',
+      'Surat Laik Operasi (SLO);',
+      'Surat Tanda Bukti Lapor Kedatangan Kapal (STBLKK);',
+      'Perjanjian Kerja Laut (PKL); dan',
+      'Dokumen kapal lainnya (Pas Besar/Pas Kecil, Sertifikat Kelaikan, Surat Ukur, Daftar Awak, Buku Sijil, dan dokumen terkait)'
+    ];
+
+    const FALLBACK_ROWS = [
+      {
+        no: 1,
+        waktu: '5 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Menerima laporan rencana keberangkatan kapal yang dilengkapi dengan dokumen persyaratan administrasi untuk permohonan penerbitan Persetujuan Berlayar (PB) dari Nakhoda atau Pemilik Kapal Perikanan/Penanggung Jawab Perusahaan,\ndan meneruskan laporan serta kelengkapannya kepada Petugas Kesyahbandaran'
+      },
+      {
+        no: 2,
+        waktu: '10 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Melakukan pemeriksaan kelengkapan surat dan validitas dokumen kapal perikanan untuk penerbitan PB, dan dokumen kapal lainnya termasuk pemeriksaan kewajiban pelunasan PNBP PHP,\ndan menyampaikan hasil pemeriksaan tersebut kepada Syahbandar di Pelabuhan Perikanan'
+      },
+      {
+        no: 3,
+        waktu: '5 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Menerima hasil pemeriksaan kelengkapan surat dan validitas dokumen kapal perikanan untuk penerbitan PB, dan dokumen kapal lainnya termasuk pemeriksaan kewajiban pelunasan PNBP PHP\ndan menugaskan pemeriksaan teknis dan nautis kepada Petugas Kesyahbandaran'
+      },
+      {
+        no: 4,
+        waktu: '60 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Melakukan pemeriksaan di atas kapal, terkait:\na. teknis dan nautis terhadap kapal perikanan dan alat penangkapan ikan, alat bantu penangkapan ikan, dan;\nb. pemenuhan persyaratan pengawakan kapal perikanan, untuk selanjutnya hasil pemeriksaan tersebut disampaikan kepada Syahbandar di Pelabuhan Perikanan'
+      },
+      {
+        no: 5,
+        waktu: '10 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Melakukan pemeriksaan ulang kelengkapan dokumen kapal perikanan untuk melihat kelengkapan dan kesesuaian dokumen Kapal Perikanan.\nBerdasarkan hasil pemeriksaan ulang dinyatakan lengkap dan sesuai, selanjutnya dilakukan penandatanganan dalam aplikasi Teman SPB dan memerintahkan kepada Petugas Kesyahbandaran untuk proses lanjut.'
+      },
+      {
+        no: 6,
+        waktu: '5 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Mencetak dan menyerahkan PB kepada Syahbandar di Pelabuhan Perikanan dan mengarsipkan salinan dokumen PB'
+      },
+      {
+        no: 7,
+        waktu: '15 Menit',
+        mulai: '',
+        selesai: '',
+        keterangan: '',
+        tahapan: 'Menerima dokumen PB dan menyerahkan kepada Nakhoda atau Pemilik Kapal Perikanan/Penanggung Jawab Perusahaan'
+      }
+    ];
+
+    function formatIndonesianDate(dateString){
+      if(!dateString) return '';
+      const date = new Date(dateString);
+      if(Number.isNaN(date.getTime())) return dateString;
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function sanitizeFileName(text){
+      if(!text) return 'dokumen';
+      const sanitized = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      return sanitized || 'dokumen';
+    }
+
+    function buildPbTableRows(formData){
+      // Prioritas: flowSteps (dari form PB) → tableRows → steps → FALLBACK
+      const rawRows = Array.isArray(formData.flowSteps) && formData.flowSteps.length
+        ? formData.flowSteps
+        : (Array.isArray(formData.tableRows) && formData.tableRows.length
+          ? formData.tableRows
+          : (Array.isArray(formData.steps) && formData.steps.length ? formData.steps : null));
+      if(!rawRows) return FALLBACK_ROWS;
+      return rawRows.map((row, idx) => {
+        if(Array.isArray(row)){
+          return {
+            no: row[0] ?? (idx + 1),
+            tahapan: row[1] || '',
+            waktu: row[2] || '',
+            mulai: row[3] || '',
+            selesai: row[4] || '',
+            keterangan: row[5] || ''
+          };
+        }
+        return {
+          no: row.no ?? (idx + 1),
+          tahapan: row.tahapan || row.step || row.text || '',
+          waktu: row.waktu || row.durasi || row.time || '',
+          mulai: row.mulai || '',
+          selesai: row.selesai || '',
+          keterangan: row.keterangan || row.catatan || ''
+        };
+      });
+    }
+
+    function buildPbPdfConfig(formData){
+      const requirementsList = Array.isArray(formData.requirements) && formData.requirements.length
+        ? formData.requirements
+        : FALLBACK_REQUIREMENTS;
+      const requirementText = requirementsList.join('\n');
+      const fileBase = formData.namaPengguna ? sanitizeFileName(formData.namaPengguna) : 'persetujuan-berlayar';
+      const place = formData.tempat || 'Serang';
+      const formattedDate = formatIndonesianDate(formData.tanggal);
+      const dateLine = formattedDate ? `${place}, ${formattedDate}` : place;
+      return {
+        templateSlug: 'persetujuan-berlayar',
+        fileName: `persetujuan-berlayar-${fileBase}.pdf`,
+        info: {
+          Pengguna: formData.namaPengguna || formData.nama || '-',
+          Alamat: formData.alamat || '-',
+          Persyaratan: requirementText
+        },
+        rows: buildPbTableRows(formData),
+        signature: {
+          date: dateLine,
+          penerimaLabel: 'Penerima Layanan',
+          penerimaName: formData.namaPengguna || formData.nama || '-',
+          pemberiLabel: 'Pemberi Layanan',
+          pemberiName: formData.namaPemberi || formData.namaPemberiPelayan || '-'
+        }
+      };
+    }
+
+    const pdfContainer = document.getElementById('pdfContainer');
+    const pdfPages = document.getElementById('pdfPages');
+    let currentPdf = null; // pdfDoc
+    let currentPdfArrayBuffer = null;
+
+    function revokeCurrentPdf(){
+      if(currentPdfArrayBuffer){
+        currentPdfArrayBuffer = null;
+      }
+      if(currentPdf){
+        try{ currentPdf.destroy(); }catch(e){}
+        currentPdf = null;
+      }
+      // clear rendered pages
+      while(pdfPages.firstChild) pdfPages.removeChild(pdfPages.firstChild);
+    }
+
+    async function generatePdfBlob(formData, signature){
+      if(typeof window.generatePbPdf !== 'function'){
+        throw new Error('Generator PDF belum siap. Muat ulang halaman.');
+      }
+      // Pass signature data to PDF generator
+      const dataWithSig = Object.assign({}, formData, { signature });
+      const result = await window.generatePbPdf(dataWithSig);
+      return result.blob;
+    }
+
+    async function renderPdfInViewer(){
+      revokeCurrentPdf();
+      const id = Number(localStorage.getItem('pbFormId'));
+      let formData = JSON.parse(localStorage.getItem('pbFormData') || '{}');
+      const signature = localStorage.getItem('pbSignature');
+      try{
+        const list = await apiGet('/api/pb');
+        const item = (list.items || []).find(x => x.id === id) || (list.items || [])[0];
+        if(item){ formData = item.data; localStorage.setItem('pbFormData', JSON.stringify(formData)); }
+      }catch(e){ /* ignore */ }
+
+      const blob = await generatePdfBlob(formData, signature);
+      // render blob via PDF.js (prepare placeholders + on-demand)
+      const arrayBuffer = await blob.arrayBuffer();
+      await loadPdfAndPreparePages(arrayBuffer);
+    }
+    async function downloadPDF() {
+      // Ambil data dari localStorage
+      const id = Number(localStorage.getItem('pbFormId'));
+      let formData = JSON.parse(localStorage.getItem('pbFormData') || '{}');
+      const signature = localStorage.getItem('pbSignature');
+
+      console.log('Download PDF - formData:', formData);
+
+      // Refresh from backend to make sure latest
+      try{
+        const list = await apiGet('/api/pb');
+        const item = (list.items || []).find(x => x.id === id) || (list.items || [])[0];
+        if(item){
+          formData = item.data;
+          localStorage.setItem('pbFormData', JSON.stringify(formData));
+          console.log('Refreshed formData from API:', formData);
+        }
+      } catch(err){
+        console.warn('Could not refresh from API:', err);
+      }
+
+      // Generate PDF blob and trigger download
+      try{
+        console.log('Generating PDF blob...');
+        const blob = await generatePdfBlob(formData, signature);
+        console.log('PDF blob generated:', blob);
+
+        // Save to local Arsip Dokumen (so it appears even if user only downloads)
+        try{
+          if(typeof window.archiveDocument === 'function'){
+            const name = (formData.namaPengguna || formData.nama || 'dokumen').replace(/\s+/g,'-');
+            const suffix = (Number.isFinite(id) && id > 0) ? String(id) : name;
+            window.archiveDocument({
+              serviceSlug: 'pb',
+              serviceName: 'Persetujuan Berlayar',
+              userName: (formData.namaPengguna || formData.nama || ''),
+              data: formData,
+              fileName: `Persetujuan-Berlayar-${suffix}.pdf`,
+              pdfBlob: blob
+            });
+          }
+        }catch(e){
+          console.warn('Gagal menyimpan PB ke Arsip Dokumen:', e);
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = (formData.namaPengguna || formData.nama || 'dokumen').replace(/\s+/g,'-');
+        a.download = `Persetujuan-Berlayar-${name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=> URL.revokeObjectURL(url), 2000);
+        console.log('PDF download triggered');
+      }catch(e){
+        console.error('Download PDF error:', e);
+        alert('Gagal membuat PDF: ' + (e && e.message));
+      }
+    }
+
+    async function saveToArchive() {
+      const id = Number(localStorage.getItem('pbFormId'));
+      let formData = JSON.parse(localStorage.getItem('pbFormData') || '{}');
+      const signature = localStorage.getItem('pbSignature');
+      try{
+        // Refresh from backend to make sure latest data is archived (best-effort)
+        try{
+          const list = await apiGet('/api/pb');
+          const item = (list.items || []).find(x => x.id === id) || (list.items || [])[0];
+          if(item){
+            formData = item.data;
+            localStorage.setItem('pbFormData', JSON.stringify(formData));
+          }
+        }catch(e){ /* ignore */ }
+
+        const res = await apiPut(`/api/pb/${id}`, { data: formData, status: 'submitted' });
+        if(res && res.data){
+          formData = res.data;
+          localStorage.setItem('pbFormData', JSON.stringify(formData));
+        }
+
+        // Save to local Arsip Dokumen (store exact PDF bytes)
+        try{
+          if(typeof window.archiveDocument === 'function'){
+            const name = (formData.namaPengguna || formData.nama || 'dokumen').replace(/\s+/g,'-');
+            const suffix = (Number.isFinite(id) && id > 0) ? String(id) : name;
+            const fileName = `Persetujuan-Berlayar-${suffix}.pdf`;
+
+            // Always create/update the archive entry (metadata) first.
+            window.archiveDocument({
+              serviceSlug: 'pb',
+              serviceName: 'Persetujuan Berlayar',
+              userName: (formData.namaPengguna || formData.nama || ''),
+              data: formData,
+              fileName
+            });
+
+            // Then try to store the exact PDF bytes.
+            const blob = await generatePdfBlob(formData, signature);
+            window.archiveDocument({
+              serviceSlug: 'pb',
+              serviceName: 'Persetujuan Berlayar',
+              userName: (formData.namaPengguna || formData.nama || ''),
+              data: formData,
+              fileName,
+              pdfBlob: blob
+            });
+          }
+        }catch(e){
+          console.warn('Gagal menyimpan PB ke Arsip Dokumen:', e);
+        }
+
+        alert('Dokumen berhasil disubmit!');
+        navigateWithFade('home.html');
+      } catch(err){
+        alert(err.message || 'Gagal menyimpan dokumen');
+      }
+    }
+
+    // render PDF once page loaded
+    document.addEventListener('DOMContentLoaded', function(){
+      // small delay so API helpers are ready
+      setTimeout(()=> {
+        renderPdfInViewer().catch(()=>{});
+      }, 120);
+    });
+
+    async function openServerPdf(){
+      const id = Number(localStorage.getItem('pbFormId'));
+      const base = (typeof API_BASE !== 'undefined' ? API_BASE : '');
+      const url = `${base}/api/pb/${id}/pdf`;
+      try{
+        const token = getToken();
+        const headers = {};
+        if(token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(url, { headers });
+        if(!res.ok){
+          const body = await res.json().catch(()=>({}));
+          alert('Gagal mengambil PDF dari server: ' + (body.error || res.status));
+          return;
+        }
+        const blob = await res.blob();
+        // render server PDF in the embedded viewer (on-demand)
+        const arrayBuffer = await blob.arrayBuffer();
+        await loadPdfAndPreparePages(arrayBuffer);
+        // also offer opening in a new tab if user wants raw PDF
+        const openRaw = confirm('Preview ditampilkan. Buka PDF mentah di tab baru?');
+        if(openRaw){
+          const blobUrl = URL.createObjectURL(blob);
+          window.open(blobUrl + '#zoom=page-width', '_blank');
+          setTimeout(()=> URL.revokeObjectURL(blobUrl), 30000);
+        }
+      }catch(e){
+        console.error(e);
+        alert('Error saat meminta PDF server: ' + (e && e.message));
+      }
+    }
+
+    // --- PDF.js rendering helpers ---
+    // Force worker to match API version 2.16.105 to avoid version mismatch errors
+    (function configurePdfWorker(){
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    })();
+
+    // --- Render-on-demand: create placeholders for each page and render when visible ---
+    const renderedPages = new Set();
+    let pageObserver = null;
+    let prefetchRange = 1; // default
+    let keepRange = 3; // cache window default
+    let evictTimer = null;
+    let totalPages = 0;
+    let currentVisiblePage = 0;
+
+    async function loadPdfAndPreparePages(arrayBuffer){
+      try{
+        revokeCurrentPdf();
+        currentPdfArrayBuffer = arrayBuffer;
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        currentPdf = await loadingTask.promise;
+        const pageCount = currentPdf.numPages;
+        totalPages = pageCount;
+        updatePageIndicator();
+
+        // create placeholders
+        for(let p=1; p<=pageCount; p++){
+          const placeholder = document.createElement('div');
+          placeholder.className = 'pdf-page-placeholder';
+          placeholder.dataset.page = p;
+          placeholder.style.minHeight = '200px';
+          placeholder.style.width = '100%';
+          placeholder.style.display = 'flex';
+          placeholder.style.alignItems = 'center';
+          placeholder.style.justifyContent = 'center';
+          // light loader
+          placeholder.innerHTML = '<div style="color:#666;">Memuat halaman ' + p + '...</div>';
+          pdfPages.appendChild(placeholder);
+        }
+
+        // read prefetch and cache-window settings from inputs/localStorage
+        try{
+          const inp = document.getElementById('prefetchRangeInput');
+          const saved = Number(localStorage.getItem('pdfPrefetchRange'));
+          if(!Number.isNaN(saved)) inp.value = String(saved);
+          prefetchRange = Math.max(0, Math.min(5, Number(inp.value) || 1));
+          inp.addEventListener('change', ()=>{
+            const v = Math.max(0, Math.min(5, Number(inp.value) || 0));
+            prefetchRange = v;
+            localStorage.setItem('pdfPrefetchRange', String(v));
+          });
+        }catch(e){}
+
+        try{
+          const cacheInp = document.getElementById('cacheWindowInput');
+          const savedCache = Number(localStorage.getItem('pdfCacheWindow'));
+          if(!Number.isNaN(savedCache)) cacheInp.value = String(savedCache);
+          keepRange = Math.max(1, Math.min(20, Number(cacheInp.value) || 3));
+          cacheInp.addEventListener('change', ()=>{
+            const v = Math.max(1, Math.min(20, Number(cacheInp.value) || 3));
+            keepRange = v;
+            localStorage.setItem('pdfCacheWindow', String(v));
+            // trigger eviction based on currently rendered pages (pick a center)
+            const any = pdfPages.querySelector('.pdf-page-placeholder');
+            if(any) scheduleEvict(Number(any.dataset.page));
+          });
+        }catch(e){}
+
+        // observe placeholders and render when they appear
+        if(pageObserver) pageObserver.disconnect();
+        renderedPages.clear();
+        pageObserver = new IntersectionObserver(async (entries)=>{
+          for(const ent of entries){
+            if(ent.isIntersecting){
+              const el = ent.target;
+              const pageNum = Number(el.dataset.page);
+              if(!renderedPages.has(pageNum)){
+                await renderSinglePage(pageNum, el);
+                renderedPages.add(pageNum);
+              }
+              // update current visible page indicator (pick the intersecting page)
+              currentVisiblePage = pageNum;
+              updatePageIndicator();
+              // prefetch neighbors within range
+              for(let d=1; d<=prefetchRange; d++){
+                const prev = pageNum - d;
+                const next = pageNum + d;
+                if(prev >= 1 && !renderedPages.has(prev)){
+                  const elPrev = pdfPages.querySelector('[data-page="'+prev+'"]');
+                  if(elPrev) { await renderSinglePage(prev, elPrev); renderedPages.add(prev); }
+                }
+                if(next <= currentPdf.numPages && !renderedPages.has(next)){
+                  const elNext = pdfPages.querySelector('[data-page="'+next+'"]');
+                  if(elNext) { await renderSinglePage(next, elNext); renderedPages.add(next); }
+                }
+              }
+              // schedule eviction centered on this page
+              scheduleEvict(pageNum);
+            }
+          }
+        }, { root: pdfContainer, rootMargin: '400px 0px 400px 0px', threshold: 0.01 });
+
+        const placeholders = pdfPages.querySelectorAll('.pdf-page-placeholder');
+        placeholders.forEach(ph => pageObserver.observe(ph));
+        // enable prev/next handlers
+        bindNavControls();
+      }catch(err){
+        console.error('loadPdfAndPreparePages failed', err);
+        alert('Gagal menyiapkan pratinjau PDF: ' + (err && err.message));
+      }
+    }
+
+    async function renderSinglePage(pageNum, placeholderEl){
+      try{
+        const page = await currentPdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1 });
+        const containerWidth = Math.max(320, pdfContainer.clientWidth - 40);
+        const scale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(scaledViewport.width);
+        canvas.height = Math.round(scaledViewport.height);
+        canvas.style.width = `${Math.round(scaledViewport.width)}px`;
+        canvas.style.height = `${Math.round(scaledViewport.height)}px`;
+        canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+        canvas.style.background = 'white';
+
+        const ctx = canvas.getContext('2d');
+        const renderContext = { canvasContext: ctx, viewport: scaledViewport };
+        await page.render(renderContext).promise;
+
+        // replace placeholder content with canvas
+        placeholderEl.innerHTML = '';
+        placeholderEl.appendChild(canvas);
+      }catch(err){
+        console.error('renderSinglePage failed', err);
+      }
+    }
+
+    function updatePageIndicator(){
+      const el = document.getElementById('pageIndicator');
+      if(!el) return;
+      if(!totalPages || !currentVisiblePage){
+        el.textContent = `Halaman 0 / ${totalPages || 0}`;
+      } else {
+        el.textContent = `Halaman ${currentVisiblePage} / ${totalPages}`;
+      }
+      // enable/disable buttons
+      const prev = document.getElementById('prevPageBtn');
+      const next = document.getElementById('nextPageBtn');
+      if(prev) prev.disabled = (currentVisiblePage <= 1);
+      if(next) next.disabled = (currentVisiblePage >= totalPages);
+    }
+
+    function bindNavControls(){
+      const prev = document.getElementById('prevPageBtn');
+      const next = document.getElementById('nextPageBtn');
+      if(prev) prev.addEventListener('click', ()=>{ navigateToRelative(-1); });
+      if(next) next.addEventListener('click', ()=>{ navigateToRelative(1); });
+      updatePageIndicator();
+    }
+
+    async function navigateToRelative(delta){
+      const target = Math.min(Math.max(1, (currentVisiblePage || 1) + delta), totalPages || 1);
+      await goToPage(target);
+    }
+
+    async function goToPage(n){
+      if(!n || n < 1) return;
+      const el = pdfPages.querySelector('[data-page="'+n+'"]');
+      if(!el) return;
+      // ensure rendered
+      if(!renderedPages.has(n)){
+        await renderSinglePage(n, el);
+        renderedPages.add(n);
+      }
+      // scroll into view
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // small delay to allow scroll to settle, then apply highlight
+      await new Promise(r => setTimeout(r, 360));
+      // highlight briefly
+      try{
+        el.classList.add('page-highlight');
+        setTimeout(()=> el.classList.remove('page-highlight'), 1200);
+      }catch(e){}
+      // update visible page state
+      currentVisiblePage = n;
+      updatePageIndicator();
+      scheduleEvict(n);
+    }
+
+    // Eviction: remove canvases outside keepRange centered on a page
+    function scheduleEvict(centerPage){
+      if(evictTimer) clearTimeout(evictTimer);
+      evictTimer = setTimeout(()=> evictPages(centerPage), 250);
+    }
+
+    function evictPages(centerPage){
+      if(!currentPdf) return;
+      const minKeep = Math.max(1, centerPage - keepRange);
+      const maxKeep = Math.min(currentPdf.numPages, centerPage + keepRange);
+      const placeholders = pdfPages.querySelectorAll('.pdf-page-placeholder');
+      placeholders.forEach(ph => {
+        const p = Number(ph.dataset.page);
+        const c = ph.querySelector('canvas');
+        if(c && (p < minKeep || p > maxKeep)){
+          try{ ph.removeChild(c); }catch(e){}
+          ph.innerHTML = '<div style="color:#666;">Memuat halaman ' + p + '...</div>';
+          renderedPages.delete(p);
+        }
+      });
+    }
+
+    // on resize: clear canvases so they will be re-rendered at new scale; re-observe placeholders
+    let resizeTimer = null;
+    window.addEventListener('resize', ()=>{
+      if(resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=>{
+        if(!currentPdfArrayBuffer) return;
+        // remove canvases to force re-render at new scale
+        const placeholders = pdfPages.querySelectorAll('.pdf-page-placeholder');
+        placeholders.forEach(ph => {
+          const c = ph.querySelector('canvas');
+          if(c){ ph.removeChild(c); ph.innerHTML = '<div style="color:#666;">Memuat halaman...</div>'; }
+        });
+        renderedPages.clear();
+        if(pageObserver) pageObserver.disconnect();
+        // re-create observer to re-render visible pages
+        pageObserver = new IntersectionObserver(async (entries)=>{
+          for(const ent of entries){
+            if(ent.isIntersecting){
+              const el = ent.target;
+              const pageNum = Number(el.dataset.page);
+              if(!renderedPages.has(pageNum)){
+                await renderSinglePage(pageNum, el);
+                renderedPages.add(pageNum);
+                scheduleEvict(pageNum);
+              }
+            }
+          }
+        }, { root: pdfContainer, rootMargin: '400px 0px 400px 0px', threshold: 0.01 });
+        placeholders.forEach(ph => pageObserver.observe(ph));
+      }, 300);
+    });
+  </script>
+</body>
+</html>

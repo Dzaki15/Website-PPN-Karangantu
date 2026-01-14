@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Preview Jasa Listrik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page feature-page">
+  <header class="topbar">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('jasa-listrik.html')">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <h2>Preview PDF Jasa Listrik</h2>
+    <p class="section-subtitle">Tinjau dokumen sebelum mengunduh</p>
+
+    <div class="pdf-viewer-container">
+      <div class="pdf-controls">
+        <button id="prevPageBtn" class="btn secondary">‹ Sebelumnya</button>
+        <span id="pageIndicator">Halaman 1 / 1</span>
+        <button id="nextPageBtn" class="btn secondary">Selanjutnya ›</button>
+      </div>
+      <div id="pdfPages" class="pdf-canvas-wrapper"></div>
+    </div>
+
+    <div class="download-actions">
+      <button type="button" id="downloadPdfBtn" class="btn primary">Download PDF</button>
+      <button type="button" class="btn secondary" onclick="navigateWithFade('jasa-listrik.html')">Kembali</button>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="js/jasa-listrik-pdf-builder.js"></script>
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 0;
+
+    async function buildPDFBlob() {
+      const data = JSON.parse(localStorage.getItem('jasaListrikData') || '{}');
+      const signature = localStorage.getItem('jasaListrikSignature');
+      return await generateJasaListrikPDF({
+        namaPengguna: data.namaPengguna,
+        alamatPengguna: data.alamatPengguna,
+        tanggalPengajuan: data.tanggalPengajuan,
+        namaPemberiLayanan: data.namaPemberiLayanan,
+        flowSteps: data.flowSteps,
+        signature
+      });
+    }
+
+    async function renderPDF() {
+      try {
+        const blob = await buildPDFBlob();
+        const arrayBuffer = await blob.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        totalPages = pdfDoc.numPages;
+        document.getElementById('pageIndicator').textContent = `Halaman ${currentPage} / ${totalPages}`;
+        renderPage(currentPage);
+      } catch (err) {
+        console.error('Render PDF gagal', err);
+        alert('Gagal menampilkan preview PDF');
+      }
+    }
+
+    async function renderPage(pageNum) {
+      if (!pdfDoc) return;
+      try {
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 });
+        let container = document.getElementById(`page-${pageNum}`);
+        if (!container) {
+          container = document.createElement('div');
+          container.id = `page-${pageNum}`;
+          container.className = 'pdf-page-placeholder';
+          document.getElementById('pdfPages').appendChild(container);
+        }
+        container.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        container.appendChild(canvas);
+      } catch (err) {
+        console.error('Render page error', err);
+      }
+    }
+
+    function goToPage(num) {
+      if (num < 1 || num > totalPages) return;
+      currentPage = num;
+      document.getElementById('pageIndicator').textContent = `Halaman ${currentPage} / ${totalPages}`;
+      renderPage(currentPage);
+    }
+
+    document.getElementById('prevPageBtn').onclick = () => goToPage(currentPage - 1);
+    document.getElementById('nextPageBtn').onclick = () => goToPage(currentPage + 1);
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+      try {
+        const blob = await buildPDFBlob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const data = JSON.parse(localStorage.getItem('jasaListrikData') || '{}');
+        const safeName = data.namaPengguna || 'dokumen';
+        link.download = `Jasa-Listrik-${safeName}.pdf`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Gagal download PDF', error);
+        alert('Gagal mengunduh PDF');
+      }
+    });
+
+    renderPDF();
+  </script>
+</body>
+</html>

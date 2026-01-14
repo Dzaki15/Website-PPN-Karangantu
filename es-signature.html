@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tanda Tangan - Pengadaan Es</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page es-page">
+  <header class="topbar">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('pengadaan-es.html')">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <div class="section-header-row">
+      <div>
+        <p class="section-eyebrow">Tanda Tangan</p>
+        <h2>Tanda Tangan Penerima Layanan</h2>
+        <p class="section-subtitle">Catat tanda tangan atau upload file tanda tangan digital</p>
+      </div>
+      <span class="badge">Opsional</span>
+    </div>
+
+    <!-- Signature Canvas -->
+    <div class="signature-container" style="margin: 20px 0;">
+      <canvas id="signatureCanvas" width="400" height="120" style="border: 2px solid #06b0b8; border-radius: 8px; background: white; display: block; margin: 0 auto; max-width: 100%; cursor: crosshair;"></canvas>
+    </div>
+
+    <!-- Canvas Controls -->
+    <div class="nav-buttons" style="justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <button type="button" class="btn secondary" onclick="resetSignature()">Hapus Tanda Tangan</button>
+      <button type="button" class="btn primary" onclick="saveSignature()">Simpan & Lanjutkan</button>
+    </div>
+
+    <!-- File Upload -->
+    <div style="margin: 20px 0; text-align: center;">
+      <p style="color: #666; margin-bottom: 10px;">Atau upload file tanda tangan:</p>
+      <label class="form-field" style="border: 2px dashed #06b0b8; padding: 20px; border-radius: 8px; cursor: pointer; background: #f9f9f9;">
+        <span style="color: #06b0b8; font-weight: 600;">📁 Pilih File Tanda Tangan</span>
+        <input type="file" id="signatureUpload" accept="image/*" style="display:none;">
+      </label>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    const canvas = document.getElementById('signatureCanvas');
+    const sig = (typeof window.setupSignatureCanvas === 'function')
+      ? window.setupSignatureCanvas(canvas, { strokeStyle: '#000', lineWidth: 2 })
+      : null;
+
+    // File upload
+    document.getElementById('signatureUpload').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        if (sig) {
+          sig.loadDataUrl(event.target.result);
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = function() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+          const x = (canvas.width - img.width * scale) / 2;
+          const y = (canvas.height - img.height * scale) / 2;
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function resetSignature() {
+      if (sig) {
+        sig.clear();
+      } else {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      document.getElementById('signatureUpload').value = '';
+    }
+
+    function saveSignature() {
+      const signatureData = sig ? sig.toDataUrl() : canvas.toDataURL('image/png');
+      if (!signatureData) {
+        alert('Mohon buat tanda tangan terlebih dahulu!');
+        return;
+      }
+      localStorage.setItem('esSignature', signatureData);
+      navigateWithFade('es-preview.html');
+    }
+  </script>
+</body>
+</html>

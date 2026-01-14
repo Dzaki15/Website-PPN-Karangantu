@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profil - PIPP</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+</head>
+<body class="page fade-out">
+  <div class="edit-profile-container">
+    <div class="edit-profile-header">
+      <button class="back-btn" onclick="navigateWithFade('home.html')">←</button>
+      <h1>Edit Profil</h1>
+    </div>
+
+    <div class="edit-profile-content">
+      <div class="profile-avatar-section">
+        <div class="avatar-circle">
+          <img id="avatarImg" src="assets/Profile%20Idle%20Icon.png" data-default="assets/Profile%20Idle%20Icon.png" alt="Avatar" class="avatar-img">
+          <div class="camera-icon">📷</div>
+        </div>
+        <p class="avatar-label">Ubah Profil</p>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+      </div>
+
+      <form id="editProfileForm">
+        <div class="form-group span-2">
+          <label for="fullName">Nama Lengkap</label>
+          <input type="text" id="fullName" name="fullName" placeholder="Masukkan nama lengkap" required>
+        </div>
+
+        <div class="form-group span-2">
+          <label for="email">Alamat Email</label>
+          <input type="email" id="email" name="email" placeholder="Masukkan email" disabled>
+        </div>
+
+        <div class="form-group">
+          <label for="idType">Jenis Identitas</label>
+          <select id="idType" name="idType">
+            <option value="KTP">KTP</option>
+            <option value="SIM">SIM</option>
+            <option value="PASSPORT">Passport</option>
+            <option value="LAINNYA">Lainnya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="idNumber">Nomor Identitas</label>
+          <input type="text" id="idNumber" name="idNumber" placeholder="Masukkan nomor identitas">
+        </div>
+
+        <div class="form-group">
+          <label for="gender">Jenis Kelamin</label>
+          <select id="gender" name="gender">
+            <option value="">Pilih</option>
+            <option value="Laki-Laki">Laki-Laki</option>
+            <option value="Perempuan">Perempuan</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="dob">Tanggal Lahir</label>
+          <input type="date" id="dob" name="dob">
+        </div>
+
+        <div class="form-group span-2">
+          <label for="fullAddress">Alamat Lengkap</label>
+          <textarea id="fullAddress" name="fullAddress" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="city">Kota</label>
+          <input type="text" id="city" name="city" placeholder="Masukkan kota">
+        </div>
+
+        <div class="form-group">
+          <label for="postalCode">Kode Pos</label>
+          <input type="text" id="postalCode" name="postalCode" inputmode="numeric" placeholder="Masukkan kode pos">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Telepon</label>
+          <input type="tel" id="phone" name="phone" placeholder="Masukkan nomor telepon">
+        </div>
+
+        <div class="form-group">
+          <label for="country">Negara</label>
+          <input type="text" id="country" name="country" placeholder="Masukkan negara">
+        </div>
+
+        <button type="submit" class="btn-save span-2">Simpan Perubahan</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Check if user is logged in
+    window.addEventListener('DOMContentLoaded', function() {
+      const token = getToken();
+      if (!token) {
+        navigateWithFade('login.html');
+        return;
+      }
+      loadProfileData();
+    });
+
+    const LOCAL_PROFILE_KEY = 'localProfileData';
+
+    function getCurrentUserSafe() {
+      try {
+        return JSON.parse(localStorage.getItem('currentUser')) || null;
+      } catch (err) {
+        console.warn('Gagal membaca data pengguna lokal:', err);
+        return null;
+      }
+    }
+
+    function getLocalProfileStore() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_PROFILE_KEY)) || {};
+      } catch (err) {
+        console.warn('Gagal membaca profil lokal:', err);
+        return {};
+      }
+    }
+
+    function saveLocalProfileStore(store) {
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(store));
+    }
+
+    function getProfileKey(user) {
+      if (!user) return null;
+      return user.id || user.email || 'local-user';
+    }
+
+    function loadProfileFromLocal(showNotice = false) {
+      const currentUser = getCurrentUserSafe();
+      if (!currentUser) {
+        navigateWithFade('login.html');
+        return;
+      }
+      const profileKey = getProfileKey(currentUser);
+      const store = getLocalProfileStore();
+      const storedProfile = store[profileKey] || {};
+      document.getElementById('fullName').value = storedProfile.name || currentUser.name || '';
+      document.getElementById('email').value = currentUser.email || '';
+      document.getElementById('phone').value = storedProfile.phone || '';
+      document.getElementById('fullAddress').value = storedProfile.fullAddress || storedProfile.address || '';
+      if (document.getElementById('idType')) document.getElementById('idType').value = storedProfile.idType || 'KTP';
+      if (document.getElementById('idNumber')) document.getElementById('idNumber').value = storedProfile.idNumber || '';
+      if (document.getElementById('gender')) document.getElementById('gender').value = storedProfile.gender || '';
+      if (document.getElementById('dob')) document.getElementById('dob').value = storedProfile.dob || '';
+      if (document.getElementById('city')) document.getElementById('city').value = storedProfile.city || '';
+      if (document.getElementById('postalCode')) document.getElementById('postalCode').value = storedProfile.postalCode || '';
+      if (document.getElementById('country')) document.getElementById('country').value = storedProfile.country || 'Indonesia';
+      const avatarSrc = storedProfile.avatar || currentUser.avatar || document.getElementById('avatarImg').dataset.default;
+      document.getElementById('avatarImg').src = avatarSrc;
+      if (showNotice) {
+        alert('Server offline. Menampilkan data profil terakhir.');
+      }
+    }
+
+    function persistLocalProfile(updates = {}) {
+      const currentUser = getCurrentUserSafe();
+      if (!currentUser) return;
+      const profileKey = getProfileKey(currentUser);
+      const store = getLocalProfileStore();
+      const mergedProfile = { ...(store[profileKey] || {}), ...updates };
+      store[profileKey] = mergedProfile;
+      saveLocalProfileStore(store);
+      const nextUser = { ...currentUser, ...mergedProfile };
+      localStorage.setItem('currentUser', JSON.stringify(nextUser));
+    }
+
+    // Load user data
+    async function loadProfileData() {
+      loadProfileFromLocal();
+      try {
+        const response = await apiGet('/api/me');
+        if (response.success) {
+          const user = response.data;
+          let extra = {};
+          try {
+            extra = user.profile_extra ? JSON.parse(user.profile_extra) : {};
+          } catch (e) {
+            extra = {};
+          }
+          document.getElementById('fullName').value = user.name || '';
+          document.getElementById('email').value = user.email || '';
+          document.getElementById('phone').value = user.phone || '';
+          document.getElementById('fullAddress').value = user.address || '';
+          if (document.getElementById('idType')) document.getElementById('idType').value = extra.idType || (document.getElementById('idType').value || 'KTP');
+          if (document.getElementById('idNumber')) document.getElementById('idNumber').value = extra.idNumber || '';
+          if (document.getElementById('gender')) document.getElementById('gender').value = extra.gender || '';
+          if (document.getElementById('dob')) document.getElementById('dob').value = extra.dob || '';
+          if (document.getElementById('city')) document.getElementById('city').value = extra.city || '';
+          if (document.getElementById('postalCode')) document.getElementById('postalCode').value = extra.postalCode || '';
+          if (document.getElementById('country')) document.getElementById('country').value = extra.country || document.getElementById('country').value || 'Indonesia';
+          if (user.avatar) {
+            document.getElementById('avatarImg').src = user.avatar;
+          }
+          persistLocalProfile({
+            name: user.name || '',
+            phone: user.phone || '',
+            address: user.address || '',
+            fullAddress: user.address || '',
+            idType: extra.idType || 'KTP',
+            idNumber: extra.idNumber || '',
+            gender: extra.gender || '',
+            dob: extra.dob || '',
+            city: extra.city || '',
+            postalCode: extra.postalCode || '',
+            country: extra.country || 'Indonesia',
+            avatar: user.avatar || document.getElementById('avatarImg').dataset.default
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        if (typeof isNetworkError === 'function' && isNetworkError(error)) {
+          loadProfileFromLocal(true);
+          return;
+        }
+        if (error.message.includes('Unauthorized') || error.message.includes('Invalid token')) {
+          navigateWithFade('login.html');
+          return;
+        }
+        alert('Tidak dapat memuat profil. Menampilkan data terakhir.');
+        loadProfileFromLocal();
+      }
+    }
+
+    // Handle avatar click
+    document.querySelector('.avatar-circle').addEventListener('click', function() {
+      document.getElementById('avatarInput').click();
+    });
+
+    // Store avatar data
+    let avatarData = null;
+
+    // Handle avatar file selection
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('File harus berupa gambar');
+          return;
+        }
+        
+        // Validate file size (max 5MB original)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Ukuran gambar maksimal 5MB');
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          // Compress image before storing
+          compressImage(e.target.result, function(compressedData) {
+            avatarData = compressedData;
+            document.getElementById('avatarImg').src = compressedData;
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Function to compress image
+    function compressImage(dataUrl, callback) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set max dimensions
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        
+        let width = img.width;
+        let height = img.height;
+        
+        // Calculate new dimensions maintaining aspect ratio
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = height * (MAX_WIDTH / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = width * (MAX_HEIGHT / height);
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to JPEG with quality 0.7 (70%)
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        callback(compressedDataUrl);
+      };
+      img.src = dataUrl;
+    }
+
+    // Handle form submission
+    document.getElementById('editProfileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const extraProfile = {
+        idType: (document.getElementById('idType')?.value || 'KTP').trim(),
+        idNumber: (document.getElementById('idNumber')?.value || '').trim(),
+        gender: (document.getElementById('gender')?.value || '').trim(),
+        dob: (document.getElementById('dob')?.value || '').trim(),
+        fullAddress: (document.getElementById('fullAddress')?.value || '').trim(),
+        city: (document.getElementById('city')?.value || '').trim(),
+        postalCode: (document.getElementById('postalCode')?.value || '').trim(),
+        country: (document.getElementById('country')?.value || 'Indonesia').trim(),
+      };
+      
+      const formData = {
+        name: document.getElementById('fullName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address: (document.getElementById('fullAddress').value || '').trim(),
+        profileExtra: extraProfile
+      };
+
+      // Add avatar if changed
+      if (avatarData) {
+        formData.avatar = avatarData;
+      }
+
+      if (!formData.name) {
+        alert('Nama lengkap harus diisi');
+        return;
+      }
+
+      try {
+        const response = await apiPut('/api/me', formData);
+        if (response.success) {
+          const user = response.data;
+          persistLocalProfile({
+            id: user.id,
+            name: user.name || formData.name,
+            email: user.email,
+            phone: user.phone || formData.phone,
+            address: user.address || formData.address,
+            fullAddress: user.address || extraProfile.fullAddress || formData.address,
+            idType: extraProfile.idType,
+            idNumber: extraProfile.idNumber,
+            gender: extraProfile.gender,
+            dob: extraProfile.dob,
+            city: extraProfile.city,
+            postalCode: extraProfile.postalCode,
+            country: extraProfile.country,
+            avatar: user.avatar || formData.avatar || document.getElementById('avatarImg').src
+          });
+          alert('Profil berhasil diperbarui!');
+          navigateWithFade('home.html');
+        } else {
+          alert('Gagal memperbarui profil: ' + (response.message || 'Error'));
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        const msg = String((error && error.message) || '');
+        const apiUnavailable =
+          (typeof isNetworkError === 'function' && isNetworkError(error)) ||
+          /Cannot\s+(GET|POST|PUT|DELETE)\s+\/api\//i.test(msg) ||
+          /Backend API belum berjalan/i.test(msg) ||
+          (error && typeof error.httpStatus === 'number' && error.httpStatus === 404);
+
+        if (apiUnavailable) {
+          persistLocalProfile({
+            name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+            fullAddress: extraProfile.fullAddress || formData.address,
+            idType: extraProfile.idType,
+            idNumber: extraProfile.idNumber,
+            gender: extraProfile.gender,
+            dob: extraProfile.dob,
+            city: extraProfile.city,
+            postalCode: extraProfile.postalCode,
+            country: extraProfile.country,
+            avatar: formData.avatar || document.getElementById('avatarImg').src
+          });
+          alert('Server backend belum aktif. Data disimpan di perangkat ini.');
+          navigateWithFade('home.html');
+          return;
+        }
+        alert('Terjadi kesalahan: ' + msg);
+      }
+    });
+  </script>
+</body>
+</html>

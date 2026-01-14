@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arsip Dokumen - ARSIP PINTAR</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Arsip preview: show PDF instead of JSON */
+    .archive-preview .preview-body{ min-height: 360px; }
+    .archive-preview .pdf-frame{ width:100%; height: 70vh; min-height: 360px; border:0; background: transparent; border-radius: 12px; }
+    .archive-preview .pdf-fallback{ color:#666; font-size: 14px; margin: 0; }
+    .archive-preview{ width: min(720px, calc(100% - 32px)); }
+    .archive-preview .pdf-canvas-wrap{ width:100%; max-height: 70vh; min-height: 360px; border-radius: 12px; background: #f0fbfd; overflow: auto; padding: 10px; }
+    .archive-preview .pdf-canvas-wrap.hidden{ display:none; }
+    .archive-preview .pdf-canvas-wrap canvas{ display:block; margin: 0 auto 12px; max-width: 100%; height: auto; border-radius: 10px; background: #fff; }
+
+    /* Force inline preview (same behavior as Arsip Admin) */
+    .archive-preview.archive-preview--inline{
+      position: static;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      width: 100%;
+      margin-top: 14px;
+    }
+    .archive-preview.archive-preview--inline .preview-body{ max-height: none; }
+  </style>
+</head>
+<body class="page feature-page">
+  <header class="form-header stblkk-header">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('home.html')">←</button>
+    <div class="header-text">
+      <p class="eyebrow">Riwayat Formulir</p>
+      <h1>Arsip Dokumen</h1>
+      <p class="subtitle">Cari, preview, atau unduh kembali kapan pun dibutuhkan.</p>
+    </div>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="logo" class="form-logo" />
+  </header>
+
+  <main class="container stblkk-container archive-container">
+    <section class="intro-card">
+      <h2>Dokumen tersimpan otomatis</h2>
+      <p>Setiap formulir yang kamu simpan/unduh akan masuk ke arsip. Kamu bisa mencari berdasarkan nama pengguna, layanan, atau ID.</p>
+      <ul class="intro-list">
+        <li>Preview menampilkan PDF yang tersimpan di perangkat.</li>
+        <li>Gunakan refresh untuk menyegarkan daftar arsip.</li>
+        <li>Unduh kembali kapan pun diperlukan.</li>
+      </ul>
+    </section>
+    <section class="archive-card card">
+      <div class="section-header-row">
+        <div>
+          <p class="section-eyebrow">Daftar Arsip</p>
+          <h2>Dokumen Tersimpan</h2>
+          <p class="section-subtitle">Gunakan pencarian untuk menemukan dokumen.</p>
+        </div>
+        <button id="clearArchive" class="btn ghost" type="button">Kosongkan Arsip</button>
+      </div>
+
+      <div class="archive-controls">
+        <div class="search-field">
+          <input id="searchInput" placeholder="Cari nama pengguna, layanan, atau ID..." />
+        </div>
+        <div class="archive-actions">
+          <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="archiveList" class="archive-list"></div>
+    </section>
+  </main>
+
+  <aside id="archivePreview" class="archive-preview hidden" aria-live="polite">
+    <div class="preview-header">
+      <div>
+        <p class="section-eyebrow">Preview Dokumen</p>
+        <h3 id="previewTitle">-</h3>
+        <p id="previewMeta" class="preview-meta">—</p>
+      </div>
+      <button id="closePreview" class="btn ghost" type="button">Tutup</button>
+    </div>
+    <div class="preview-body">
+      <p id="previewHint" class="pdf-fallback">Pilih arsip untuk melihat pratinjau PDF.</p>
+      <div id="previewPdfCanvas" class="pdf-canvas-wrap hidden" aria-label="Preview PDF"></div>
+    </div>
+  </aside>
+
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script>
+    // Setup pdf.js worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+    }
+  </script>
+  <script src="js/script.js"></script>
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="js/pdf-generator.js"></script>
+  <script>
+    const archiveList = document.getElementById('archiveList');
+    const searchInput = document.getElementById('searchInput');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const clearBtn = document.getElementById('clearArchive');
+    const previewPanel = document.getElementById('archivePreview');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewMeta = document.getElementById('previewMeta');
+    const previewHint = document.getElementById('previewHint');
+    const previewPdfCanvas = document.getElementById('previewPdfCanvas');
+    const closePreview = document.getElementById('closePreview');
+
+    const archiveState = { items: [] };
+    let currentPreviewUrl = null;
+    let currentRole = 'user';
+    let lastRenderStr = '';
+    let activePreviewEntryId = null;
+
+    function findArchiveItemElByEntryId(entryId){
+      if(!entryId || !archiveList) return null;
+      const safeId = String(entryId).replace(/"/g, '\\"');
+      return archiveList.querySelector(`[data-entry-id="${safeId}"]`);
+    }
+
+    function attachInlinePreview(entryId, triggerEl){
+      if(!previewPanel) return;
+      previewPanel.classList.add('archive-preview--inline');
+
+      let itemEl = null;
+      if(triggerEl && typeof triggerEl.closest === 'function'){
+        itemEl = triggerEl.closest('[data-entry-id]');
+      }
+      if(!itemEl) itemEl = findArchiveItemElByEntryId(entryId);
+
+      if(itemEl && itemEl.parentNode){
+        itemEl.insertAdjacentElement('afterend', previewPanel);
+        return;
+      }
+
+      // Fallback: put it after the list
+      if(archiveList && archiveList.parentNode){
+        archiveList.parentNode.appendChild(previewPanel);
+      }
+    }
+
+    function serviceNameFromSlug(slug){
+      const map = {
+        'skkp': 'SKKP',
+        'pb': 'PB',
+        'pengadaan-es': 'Pengadaan ES',
+        'stblkk': 'STBLKK',
+        'shti-lt': 'SHTI LT',
+        'jasa-listrik': 'Jasa Listrik',
+        'penggunaan-arra': 'Penggunaan ARRA ES'
+      };
+      return map[String(slug || '').toLowerCase()] || (slug ? String(slug) : 'Dokumen');
+    }
+
+    async function ensureRoleAndHeader(){
+      try {
+        const me = await apiGet('/api/me');
+        const user = me && me.success ? me.data : null;
+        if(user && user.role) currentRole = user.role;
+      } catch(e) {}
+
+      // Adjust back button target based on role.
+      const backBtn = document.querySelector('.back-btn');
+      if(backBtn){
+        backBtn.onclick = () => navigateWithFade(currentRole === 'admin' ? 'admin-home.html' : 'home.html');
+      }
+
+      // Minor copy tweak for admin mode.
+      if(currentRole === 'admin'){
+        const eyebrow = document.querySelector('.header-text .eyebrow');
+        const subtitle = document.querySelector('.header-text .subtitle');
+        if(eyebrow) eyebrow.textContent = 'Arsip Admin';
+        if(subtitle) subtitle.textContent = 'Semua dokumen yang sudah ditandatangani admin.';
+      }
+    }
+
+    async function fetchSignedPdfBlobAdmin(submissionId){
+      const headers = {};
+      const token = (typeof window.getToken === 'function') ? window.getToken() : (localStorage.getItem('token') || '');
+      if(token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE}/api/admin/submissions/${submissionId}/signed-pdf`, { headers });
+      if(!res.ok) throw new Error('Gagal mengambil PDF bertanda tangan');
+      return await res.blob();
+    }
+
+    async function fetchSignedPdfBlobForMe(submissionId){
+      const headers = {};
+      const token = (typeof window.getToken === 'function') ? window.getToken() : (localStorage.getItem('token') || '');
+      if(token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE}/api/my/signed-submissions/${submissionId}/pdf`, { headers });
+      if(!res.ok) throw new Error('Gagal mengambil PDF bertanda tangan (user)');
+      return await res.blob();
+    }
+
+    function formatDate(iso){
+      if(!iso) return '-';
+      const date = new Date(iso);
+      return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function sanitizeText(value){
+      if(value === undefined || value === null) return '';
+      return String(value).trim();
+    }
+
+    function stripWaktuLabel(value){
+      const text = sanitizeText(value);
+      return text.replace(/^Waktu\s*:\s*/i, '').trim();
+    }
+
+    function getUserNameFromData(data){
+      return (
+        data?.namaPengguna ||
+        data?.namaPemohon ||
+        data?.namaAplikasi ||
+        data?.nama ||
+        data?.namaKapal ||
+        ''
+      );
+    }
+
+    function getAddressFromData(data){
+      return data?.alamatPengguna || data?.alamat || '';
+    }
+
+    function normalizeRequirements(data){
+      const persyaratan = data?.persyaratan;
+      if(Array.isArray(persyaratan)) return persyaratan.filter(Boolean);
+      if(typeof persyaratan === 'string' && persyaratan.trim()) return [persyaratan.trim()];
+      const reqDesc = data?.requirementDescriptions;
+      if(Array.isArray(reqDesc)) return reqDesc.filter(Boolean);
+      return [];
+    }
+
+    function normalizeRows(data){
+      const flowSteps = Array.isArray(data?.flowSteps) ? data.flowSteps : null;
+      const flowchartSteps = Array.isArray(data?.flowchartSteps) ? data.flowchartSteps : null;
+      const src = flowSteps || flowchartSteps || [];
+      return src.map((step, idx) => ({
+        no: idx + 1,
+        tahapan: sanitizeText(step?.tahapan || step?.text || step?.title || ''),
+        waktu: stripWaktuLabel(step?.waktu || step?.time || ''),
+        mulai: sanitizeText(step?.mulai || ''),
+        selesai: sanitizeText(step?.selesai || ''),
+        keterangan: sanitizeText(step?.keterangan || step?.catatan || '')
+      }));
+    }
+
+    function buildPdfConfigFromEntry(entry){
+      const data = entry?.data || {};
+      const templateSlug = entry?.serviceSlug || 'dokumen';
+      const userName = entry?.userName || getUserNameFromData(data) || 'Tanpa Nama';
+      const pemberiName = data?.namaPemberiLayanan || data?.namaPemberi || data?.namaPetugas || '';
+      const tanggal = data?.tanggalPengajuan || data?.tanggal || data?.generatedAt || '';
+
+      const info = {
+        Pengguna: userName,
+        Alamat: getAddressFromData(data),
+        Persyaratan: normalizeRequirements(data).join('\n')
+      };
+
+      const signature = {
+        dateText: tanggal,
+        penerimaLabel: 'Penerima Layanan',
+        penerimaName: userName,
+        pemberiLabel: 'Petugas / Pejabat',
+        pemberiName: pemberiName
+      };
+
+      const rows = normalizeRows(data);
+
+      let fileName = entry?.fileName;
+      if(!fileName || !/\.pdf$/i.test(fileName)){
+        const safeSlug = (templateSlug || 'dokumen').replace(/\s+/g, '-');
+        const safeUser = (userName || 'dokumen').replace(/\s+/g, '-');
+        fileName = `${safeSlug}-${safeUser}.pdf`;
+      }
+
+      return { templateSlug, info, rows, signature, fileName };
+    }
+
+    async function generatePdfForEntry(entry){
+      if(typeof window.generateServicePdf !== 'function'){
+        throw new Error('PDF generator belum dimuat.');
+      }
+      const config = buildPdfConfigFromEntry(entry);
+      return window.generateServicePdf(config);
+    }
+
+    function revokePreviewUrl(){
+      if(currentPreviewUrl){
+        try { URL.revokeObjectURL(currentPreviewUrl); } catch (e) {}
+        currentPreviewUrl = null;
+      }
+    }
+
+    function clearPdfCanvas(){
+      if(previewPdfCanvas) previewPdfCanvas.innerHTML = '';
+    }
+
+    async function renderPdfWithPdfJs(blob){
+      if(!blob) return false;
+      if(!window.pdfjsLib || !previewPdfCanvas) return false;
+
+      clearPdfCanvas();
+      previewPdfCanvas.classList.remove('hidden');
+
+      const arrayBuffer = await blob.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      const containerWidth = Math.max(1, (previewPdfCanvas.clientWidth || 600) - 20);
+      const dpr = window.devicePixelRatio || 1;
+
+      for(let pageNum = 1; pageNum <= pdf.numPages; pageNum++){
+        const page = await pdf.getPage(pageNum);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = containerWidth / baseViewport.width;
+        const viewport = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = Math.floor(viewport.width * dpr);
+        canvas.height = Math.floor(viewport.height * dpr);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        previewPdfCanvas.appendChild(canvas);
+      }
+
+      return true;
+    }
+
+    async function getStoredPdfBlob(entry){
+      if(!entry || !entry.id) return null;
+      if(typeof window.getArchivePdfBlob !== 'function') return null;
+      return await window.getArchivePdfBlob(entry.id);
+    }
+
+    async function getPdfBlobForEntry(entry){
+      if(!entry) return null;
+      // Admin remote items: signed PDF from admin endpoint
+      if(entry.__remote && entry.__submissionId){
+        return await fetchSignedPdfBlobAdmin(entry.__submissionId);
+      }
+
+      // User signed items: prefer server-side signed PDF (so it includes admin signature)
+      if(entry.__status === 'signed' && entry.__submissionId){
+        return await fetchSignedPdfBlobForMe(entry.__submissionId);
+      }
+
+      return await getStoredPdfBlob(entry);
+    }
+
+    async function downloadEntry(entry){
+      if(!entry) return;
+      try {
+        const storedBlob = await getPdfBlobForEntry(entry);
+        if(storedBlob){
+          const name = entry.fileName && /\.pdf$/i.test(entry.fileName) ? entry.fileName : `${entry.serviceSlug || 'dokumen'}-${entry.id}.pdf`;
+          if(typeof window.downloadPdfBlob === 'function'){
+            window.downloadPdfBlob(storedBlob, name);
+          } else {
+            const url = URL.createObjectURL(storedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1200);
+          }
+          return;
+        }
+
+        // Fallback for older archive entries that didn't store the PDF bytes.
+        const result = await generatePdfForEntry(entry);
+        if(typeof window.downloadPdfBlob === 'function') window.downloadPdfBlob(result.blob, result.fileName);
+        else {
+          const url = URL.createObjectURL(result.blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1200);
+        }
+      } catch (error){
+        console.error('Gagal menyiapkan PDF:', error);
+        alert('Gagal menyiapkan PDF untuk diunduh.');
+      }
+    }
+
+    async function openPreview(entry, triggerEl){
+      if(!entry) return;
+
+      activePreviewEntryId = entry.id;
+      attachInlinePreview(entry.id, triggerEl);
+      
+      // Mark as viewed if it's a newly signed document
+      if(entry.__status === 'signed' && entry.__submissionId && !entry.__viewed){
+        entry.__viewed = true;
+        // Store viewed status in localStorage
+        const viewedKey = 'viewedSignedDocs';
+        const viewed = JSON.parse(localStorage.getItem(viewedKey) || '[]');
+        if(!viewed.includes(entry.__submissionId)){
+          viewed.push(entry.__submissionId);
+          localStorage.setItem(viewedKey, JSON.stringify(viewed));
+        }
+      }
+      
+      previewTitle.textContent = entry.serviceName || 'Dokumen Tanpa Nama';
+      previewMeta.textContent = `${entry.userName || 'Pengguna'} • ${formatDate(entry.savedAt)} • ID: ${entry.id}`;
+      previewPanel.classList.remove('hidden');
+      previewHint.textContent = 'Mempersiapkan pratinjau PDF...';
+      previewHint.classList.remove('hidden');
+      if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      clearPdfCanvas();
+      revokePreviewUrl();
+
+      try {
+        let blob = await getPdfBlobForEntry(entry);
+        if(!blob){
+          // Fallback for older entries
+          const result = await generatePdfForEntry(entry);
+          blob = result.blob;
+        }
+
+        const ok = await renderPdfWithPdfJs(blob);
+        if(ok){
+          previewHint.classList.add('hidden');
+          return;
+        }
+
+        previewHint.textContent = 'Preview PDF tidak tersedia. Silakan gunakan Download.';
+        previewHint.classList.remove('hidden');
+        if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      } catch (error){
+        console.error('Gagal preview PDF:', error);
+        previewHint.textContent = 'Tidak dapat membuat pratinjau PDF untuk dokumen ini.';
+        previewHint.classList.remove('hidden');
+        if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      }
+    }
+
+    function closePreviewPanel(){
+      previewPanel.classList.add('hidden');
+      activePreviewEntryId = null;
+      previewHint.classList.remove('hidden');
+      previewHint.textContent = 'Pilih arsip untuk melihat pratinjau PDF.';
+      if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      clearPdfCanvas();
+      revokePreviewUrl();
+    }
+
+    function getHiddenSubmissionsKey(){
+      const base = 'hiddenSubmissionIds';
+      try {
+        const raw = localStorage.getItem('currentUser');
+        const user = raw ? JSON.parse(raw) : null;
+        const suffix = user && (user.id || user.email || user.name);
+        if(suffix) return `${base}:${suffix}`;
+      } catch (e) {}
+      return base;
+    }
+
+    function getHiddenSubmissionIds(){
+      try {
+        const raw = localStorage.getItem(getHiddenSubmissionsKey()) || '[]';
+        const list = JSON.parse(raw);
+        return Array.isArray(list) ? list.map(String) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function hideSubmissionId(submissionId){
+      const id = String(submissionId || '');
+      if(!id) return;
+      const list = getHiddenSubmissionIds();
+      if(list.includes(id)) return;
+      list.push(id);
+      localStorage.setItem(getHiddenSubmissionsKey(), JSON.stringify(list));
+    }
+
+    function deleteEntry(entry){
+      if(!entry || !entry.id) return;
+      const ok = confirm('Hapus dokumen ini dari arsip?');
+      if(!ok) return;
+
+      // If this entry is from server, delete it on server too.
+      if(entry.__remote && entry.__submissionId){
+        // User mode: for rejected documents, only hide locally (do NOT delete server record)
+        if(currentRole !== 'admin' && entry.__status === 'rejected'){
+          const id = String(entry.__submissionId);
+          hideSubmissionId(id);
+
+          // Also remove any local archive entries linked to this submission.
+          if(typeof window.getArchiveEntries === 'function' && typeof window.deleteArchiveEntry === 'function'){
+            const locals = window.getArchiveEntries();
+            locals
+              .filter(e => e && e.submissionId && String(e.submissionId) === id)
+              .forEach(e => window.deleteArchiveEntry(e.id));
+          }
+
+          loadArchive();
+          if(!previewPanel.classList.contains('hidden')){
+            closePreviewPanel();
+          }
+          return;
+        }
+
+        (async () => {
+          try {
+            const headers = {};
+            const token = (typeof window.getToken === 'function') ? window.getToken() : (localStorage.getItem('token') || '');
+            if(token) headers['Authorization'] = `Bearer ${token}`;
+
+            const id = String(entry.__submissionId);
+            const path = (currentRole === 'admin')
+              ? `${API_BASE}/api/admin/submissions/${id}`
+              : `${API_BASE}/api/my/submissions/${id}`;
+
+            const res = await fetch(path, { method: 'DELETE', headers });
+            if(!res.ok){
+              alert('Gagal menghapus di server: ' + res.status);
+              return;
+            }
+
+            // Also remove any local archive entries linked to this submission.
+            if(typeof window.getArchiveEntries === 'function' && typeof window.deleteArchiveEntry === 'function'){
+              const locals = window.getArchiveEntries();
+              locals
+                .filter(e => e && e.submissionId && String(e.submissionId) === id)
+                .forEach(e => window.deleteArchiveEntry(e.id));
+            }
+
+            await loadArchive();
+            if(!previewPanel.classList.contains('hidden')){
+              closePreviewPanel();
+            }
+          } catch (err){
+            console.error('Gagal menghapus submission:', err);
+            alert('Gagal menghapus dokumen. Coba lagi.');
+          }
+        })();
+        return;
+      }
+
+      // Local-only entry
+      if(typeof window.deleteArchiveEntry !== 'function') return;
+      window.deleteArchiveEntry(entry.id);
+      loadArchive();
+      if(!previewPanel.classList.contains('hidden')){
+        closePreviewPanel();
+      }
+    }
+
+    function renderList(){
+      const previewWasOpen = previewPanel && !previewPanel.classList.contains('hidden');
+      const previewId = activePreviewEntryId;
+      if(previewPanel && previewPanel.parentNode === archiveList){
+        previewPanel.remove();
+      }
+
+      archiveList.innerHTML = '';
+      const entries = archiveState.items;
+      const q = (searchInput.value || '').toLowerCase().trim();
+      const filtered = entries.filter(entry => {
+        if(!q) return true;
+        return [entry.userName, entry.serviceName, entry.id]
+          .filter(Boolean)
+          .some(value => String(value).toLowerCase().includes(q));
+      });
+
+      // Skip re-render if list content (ids + status) hasn't changed
+      const renderStr = filtered.map(e => `${e.id}|${e.__status || ''}|${e.savedAt || ''}`).join('::');
+      if(renderStr === lastRenderStr){
+        return;
+      }
+      lastRenderStr = renderStr;
+
+      if(!filtered.length){
+        archiveList.innerHTML = '<div class="archive-empty">Belum ada dokumen yang cocok.</div>';
+        return;
+      }
+
+      filtered.forEach(entry => {
+        const item = document.createElement('article');
+        item.className = 'archive-item';
+        item.setAttribute('data-entry-id', entry.id);
+        
+        const status = entry.__status || 'local';
+        let statusLabel = '';
+        let statusColor = '';
+        if(status === 'pending'){
+          statusLabel = 'Proses';
+          statusColor = '#f39c12';
+        } else if(status === 'signed'){
+          statusLabel = 'Disetujui';
+          statusColor = '#06a77d';
+        } else if(status === 'rejected'){
+          statusLabel = 'Ditolak';
+          statusColor = '#d63031';
+        } else if(status === 'local'){
+          statusLabel = 'Lokal';
+          statusColor = '#6b7280';
+        }
+
+        const statusBadgeStyle = status === 'local'
+          ? 'display:inline-block; background-color:#e5e7eb; color:#6b7280; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-left:8px;'
+          : `display:inline-block; background-color:${statusColor}; color:white; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-left:8px;`;
+
+        const statusBadge = statusLabel
+          ? `<span style="${statusBadgeStyle}">${statusLabel}</span>`
+          : '';
+        
+        const deleteButtonHtml = `<button class="archive-delete-btn btn ghost" type="button" data-entry-id="${entry.id}">Hapus</button>`;
+        item.innerHTML = `
+          <div>
+            <strong style="display:block; font-size:15px; color:#0b3b3f;">
+              ${entry.serviceName || 'Layanan'}
+              ${statusBadge}
+            </strong>
+            <div class="archive-item-meta">${entry.userName || 'Pengguna'} • ${formatDate(entry.savedAt)}</div>
+          </div>
+          <div class="archive-item-actions">
+            <button class="archive-preview-btn btn secondary" type="button" data-entry-id="${entry.id}">Preview</button>
+            <button class="archive-download-btn btn primary" type="button" data-entry-id="${entry.id}">Download</button>
+            ${deleteButtonHtml}
+          </div>
+        `;
+        archiveList.appendChild(item);
+
+        if(previewWasOpen && previewId && entry.id === previewId){
+          item.insertAdjacentElement('afterend', previewPanel);
+        }
+      });
+
+      if(previewWasOpen && previewId){
+        attachInlinePreview(previewId);
+      }
+
+      // Attach event listeners using event delegation on archiveList
+      archiveList.querySelectorAll('.archive-preview-btn').forEach(btn => {
+        btn.removeEventListener('click', handlePreviewClick);
+        btn.addEventListener('click', handlePreviewClick);
+      });
+      archiveList.querySelectorAll('.archive-download-btn').forEach(btn => {
+        btn.removeEventListener('click', handleDownloadClick);
+        btn.addEventListener('click', handleDownloadClick);
+      });
+      archiveList.querySelectorAll('.archive-delete-btn').forEach(btn => {
+        btn.removeEventListener('click', handleDeleteClick);
+        btn.addEventListener('click', handleDeleteClick);
+      });
+    }
+
+    function handlePreviewClick(e){
+      const entryId = e.currentTarget.getAttribute('data-entry-id');
+      const entry = archiveState.items.find(item => item.id === entryId);
+      if(entry) openPreview(entry, e.currentTarget);
+    }
+
+    function handleDownloadClick(e){
+      const entryId = e.currentTarget.getAttribute('data-entry-id');
+      const entry = archiveState.items.find(item => item.id === entryId);
+      if(entry) downloadEntry(entry);
+    }
+
+    function handleDeleteClick(e){
+      const entryId = e.currentTarget.getAttribute('data-entry-id');
+      const entry = archiveState.items.find(item => item.id === entryId);
+      if(entry) deleteEntry(entry);
+    }
+
+    async function loadAdminArchive(){
+      // Admin sees server-side signed submissions (all users)
+      const res = await apiGet('/api/admin/submissions?status=signed');
+      const items = Array.isArray(res && res.items) ? res.items : [];
+      const mapped = items.map(r => ({
+        id: `signed-${r.id}`,
+        __remote: true,
+        __submissionId: r.id,
+        __status: 'signed',
+        serviceSlug: r.service_slug,
+        serviceName: serviceNameFromSlug(r.service_slug),
+        userName: r.user_name || 'User',
+        savedAt: r.signed_at || r.created_at,
+        fileName: r.file_name,
+        data: {}
+      }));
+      // Sort by newest first based on signed_at (fallback created_at)
+      mapped.sort((a, b) => {
+        const da = new Date(a.savedAt || 0).getTime();
+        const db = new Date(b.savedAt || 0).getTime();
+        return db - da;
+      });
+      archiveState.items = mapped;
+      renderList();
+    }
+
+    async function loadArchive(){
+      await ensureRoleAndHeader();
+
+      if(currentRole === 'admin'){
+        if(clearBtn) clearBtn.style.display = 'none';
+        try {
+          await loadAdminArchive();
+        } catch (e){
+          archiveState.items = [];
+          renderList();
+        }
+        return;
+      }
+
+      // user mode: fetch all user submissions (pending + signed + rejected)
+      let allSubmissions = [];
+      try {
+        const pending = await apiGet('/api/my/submissions?status=pending');
+        const signed = await apiGet('/api/my/signed-submissions');
+        const rejected = await apiGet('/api/my/submissions?status=rejected');
+        allSubmissions = [
+          ...(Array.isArray(pending && pending.items) ? pending.items : []).map(s => ({...s, __status: 'pending'})),
+          ...(Array.isArray(signed && signed.items) ? signed.items : []).map(s => ({...s, __status: 'signed'})),
+          ...(Array.isArray(rejected && rejected.items) ? rejected.items : []).map(s => ({...s, __status: 'rejected'}))
+        ];
+
+        // Apply local hide list (user-only)
+        const hiddenIds = new Set(getHiddenSubmissionIds());
+        if(hiddenIds.size){
+          allSubmissions = allSubmissions.filter(s => !hiddenIds.has(String(s && s.id)));
+        }
+
+        console.log('✅ Server submissions loaded:', allSubmissions.length);
+        if(allSubmissions.length > 0){
+          console.table(allSubmissions.map(s => ({
+            status: s.__status,
+            service: s.service_slug,
+            file: s.file_name,
+            date: s.created_at
+          })));
+        }
+      } catch(e) {
+        console.error('❌ Gagal fetch submissions (user):', e);
+      }
+
+      // Disabled local sync on Arsip load to prevent repeated writes/logs.
+      // The list below already merges server submissions with local archive entries.
+
+      const hiddenIds = new Set(getHiddenSubmissionIds());
+      const localEntriesRaw = (typeof window.getArchiveEntries === 'function') ? window.getArchiveEntries() : [];
+      const localEntries = localEntriesRaw.filter(e => {
+        const sid = e && e.submissionId ? String(e.submissionId) : '';
+        return !sid || !hiddenIds.has(sid);
+      });
+      console.log('[Arsip] Local entries:', localEntries.length, localEntries.map(e => ({
+        id: e.id, slug: e.serviceSlug, file: e.fileName, status: e.__status, savedAt: e.savedAt
+      })));
+      
+      // Merge: prefer linking local entries to server entries via submissionId.
+      // This prevents incorrect status mapping when file names are reused.
+      const serverById = new Map();
+      const serverItems = [];
+      allSubmissions.forEach(sub => {
+        const item = {
+          id: `server-${sub.id}`,
+          __submissionId: sub.id,
+          __remote: true,
+          __status: sub.__status,
+          serviceSlug: sub.service_slug,
+          serviceName: serviceNameFromSlug(sub.service_slug),
+          fileName: sub.file_name,
+          savedAt: sub.signed_at || sub.created_at || new Date().toISOString(),
+          userName: '',
+          data: {}
+        };
+        serverById.set(String(sub.id), item);
+        serverItems.push(item);
+      });
+
+      const merged = [];
+
+      // Local entries: always show immediately, default PROSES.
+      for(const entry of localEntries){
+        const sid = entry && entry.submissionId ? String(entry.submissionId) : '';
+        const serverMatch = sid ? serverById.get(sid) : null;
+
+        if(serverMatch){
+          merged.push({
+            ...entry,
+            __status: serverMatch.__status,
+            __submissionId: serverMatch.__submissionId
+          });
+          serverById.delete(sid);
+        } else {
+          merged.push({
+            ...entry,
+            __status: entry.__status || (entry.__remote ? entry.__status : 'pending'),
+            __submissionId: entry.__submissionId || (entry.submissionId || undefined)
+          });
+        }
+      }
+
+      // Server-only entries that do not have a local counterpart yet
+      serverById.forEach(item => merged.push(item));
+
+      // Sort by newest first (most recent at top)
+      merged.sort((a, b) => {
+        const dateA = new Date(a.savedAt || 0).getTime();
+        const dateB = new Date(b.savedAt || 0).getTime();
+        return dateB - dateA; // descending
+      });
+
+      console.log('[Arsip] After merge & sort:', merged.length, merged.map(e => ({
+        id: e.id, slug: e.serviceSlug, status: e.__status, savedAt: e.savedAt
+      })));
+
+      archiveState.items = merged;
+      renderList();
+    }
+
+    searchInput.addEventListener('input', renderList);
+    refreshBtn.addEventListener('click', loadArchive);
+    closePreview.addEventListener('click', closePreviewPanel);
+    clearBtn.addEventListener('click', () => {
+      if(!window.clearArchiveEntries) return;
+      const confirmClear = confirm('Kosongkan seluruh arsip dokumen?');
+      if(!confirmClear) return;
+      window.clearArchiveEntries();
+      archiveState.items = [];
+      renderList();
+      closePreviewPanel();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadArchive);
+
+    // Auto-refresh when archive updates in another tab/page
+    // Auto-refresh via storage events disabled to avoid repeated reloads.
+    // Use the Refresh button to update the list manually.
+  </script>
+</body>
+</html>

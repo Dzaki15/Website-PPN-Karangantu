@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Home</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page home-page">
+  <header class="site-header">
+    <div class="navbar-container">
+      <div class="home-header" style="flex:1;">
+        <div class="user-left" onclick="navigateWithFade('edit-profile.html')" style="cursor: pointer;">
+          <div class="avatar" id="userAvatar">
+            <img id="avatarImage" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;">
+            <img id="avatarPlaceholder" src="assets/Profile%20Idle%20Icon.png" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+          </div>
+          <div>
+            <div id="greeting" class="greeting">Hi, User!</div>
+            <div class="sub">Good Morning</div>
+          </div>
+        </div>
+
+        <div class="user-right">
+          <button class="logout-btn" id="logoutBtn" type="button"><img src="assets/Logout Icon.png" alt="Logout" class="logout-icon" /></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="search-card">
+      <input type="search" placeholder="Search forms, docs..." />
+    </div>
+
+    <div class="welcome-box">
+      <div class="welcome-content">
+        <div>
+          <h3>Welcome!</h3>
+          <p>Fill in the form, sign, and download official documents digitally.</p>
+        </div>
+        <img src="assets/10 1 (1).png" alt="Welcome" class="welcome-illustration" />       
+      </div>
+    </div>
+
+    <h4 class="section-title">Category</h4>
+
+    <div class="grid-categories">
+      <div class="cat" onclick="navigateWithFade('skkp.html')" style="cursor:pointer;"> <img src="assets/SKKP Icon (1).png" alt="SKKP" class="cat-icon-img"> <div class="cat-label">SKKP</div> </div>
+      <div class="cat" onclick="navigateWithFade('pb-form.html')" style="cursor:pointer;"> <img src="assets/PB Icon.png" alt="PB" class="cat-icon-img"> <div class="cat-label">PB</div> </div>
+      <div class="cat" onclick="navigateWithFade('pengadaan-es.html')" style="cursor:pointer;"> <img src="assets/Pengadaan ES Icon.png" alt="Pengadaan ES" class="cat-icon-img"> <div class="cat-label">Pengadaan ES</div> </div>
+
+      <div class="cat" onclick="navigateWithFade('stblkk.html')" style="cursor:pointer;"> <img src="assets/STBLKK Icon.png" alt="STBLKK" class="cat-icon-img"> <div class="cat-label">STBLKK</div> </div>
+      <div class="cat" onclick="navigateWithFade('shti-lt.html')" style="cursor:pointer;"> <img src="assets/SHTI LT Icon.png" alt="SHTI LT" class="cat-icon-img"> <div class="cat-label">SHTI LT</div> </div>
+      <div class="cat" onclick="navigateWithFade('jasa-listrik.html')" style="cursor:pointer;"> <img src="assets/Jasa Listrik Icon.png" alt="Jasa Listrik" class="cat-icon-img"> <div class="cat-label">Jasa Listrik</div> </div>
+
+      <div class="cat" onclick="navigateWithFade('penggunaan-arra.html')" style="cursor:pointer;"> <img src="assets/Penggunaan ARRA ES Icon.png" alt="Penggunaan ARRA ES" class="cat-icon-img"> <div class="cat-label">Penggunaan ARRA ES</div> </div>
+      <div class="cat" onclick="navigateWithFade('arsip-dokumen.html')" style="cursor:pointer; position: relative;"> 
+        <img src="assets/ARSIP Dokumen Icon.png" alt="Arsip Dokumen" class="cat-icon-img"> 
+        <div class="cat-label">Arsip Dokumen</div>
+        <span id="arsipBadge" class="badge badge-success cat-badge cat-badge-circle" hidden></span>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/script.js?v=20260104"></script>
+  <script>
+    // Fetch current user from backend, fallback to local user
+    (async () => {
+      try{
+        const res = await apiGet('/api/me');
+        const user = res.success ? res.data : res.user;
+        if(user){
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          if(user.role === 'admin'){
+            navigateWithFade('admin-home.html');
+            return;
+          }
+          document.getElementById('greeting').textContent = `Hi, ${user.name.split(' ')[0]}!`;
+          
+          // Display avatar if exists
+          if(user.avatar) {
+            document.getElementById('avatarImage').src = user.avatar;
+            document.getElementById('avatarImage').style.display = 'block';
+            document.getElementById('avatarPlaceholder').style.display = 'none';
+          }
+        } else {
+          throw new Error('No user');
+        }
+      } catch(err) {
+        const current = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if(!current){
+          navigateWithFade('login.html');
+        } else {
+          if(current.role === 'admin'){
+            navigateWithFade('admin-home.html');
+            return;
+          }
+          document.getElementById('greeting').textContent = `Hi, ${current.name.split(' ')[0]}!`;
+          
+          // Display avatar from localStorage if exists
+          if(current.avatar) {
+            document.getElementById('avatarImage').src = current.avatar;
+            document.getElementById('avatarImage').style.display = 'block';
+            document.getElementById('avatarPlaceholder').style.display = 'none';
+          }
+        }
+      }
+
+      // Update Arsip badge count ASAP (do not block on network)
+      try {
+        if(typeof window.updateArsipBadgeCount === 'function'){
+          await window.updateArsipBadgeCount();
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Best-effort: pull signed PDFs and update local Arsip (background)
+      try {
+        if(typeof window.syncSignedSubmissionsToArchive === 'function'){
+          Promise.resolve()
+            .then(() => window.syncSignedSubmissionsToArchive())
+            .then(() => window.updateArsipBadgeCount && window.updateArsipBadgeCount())
+            .catch(() => {});
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      navigateWithFade('login.html');
+    });
+  </script>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-text">PPN Karangantu • Arsip Pintar</p>
+    </div>
+  </footer>
+</body>
+</html>

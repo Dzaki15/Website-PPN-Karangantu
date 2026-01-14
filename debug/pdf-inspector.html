@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDF Coordinate Inspector</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      font-family: Poppins, Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: #f5fbfc;
+      color: #0a3b40;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 24px;
+      background: #063e44;
+      color: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 600;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls label {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.7);
+    }
+    .controls input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      padding: 18px 18px 28px;
+    }
+    .canvas-wrapper {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(8,64,68,0.08);
+      overflow: auto;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      border: 1px solid rgba(6, 176, 184, 0.3);
+      background: #fff;
+    }
+    .sidepanel {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(8,64,68,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 220px;
+      border-radius: 12px;
+      border: 1px solid rgba(6, 176, 184, 0.3);
+      padding: 12px;
+      font-family: "Fira Code", Consolas, monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      background: #06b0b8;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 12px;
+      color: #47686c;
+      line-height: 1.5;
+    }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script defer src="../assets/pdfjs/pdf.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>PDF Coordinate Inspector</h1>
+    <div class="controls">
+      <label>PDF Path
+        <input id="fileInput" type="text" placeholder="assets/PB 2025.pdf" />
+      </label>
+      <label>Page
+        <input id="pageInput" type="number" min="1" value="1" />
+      </label>
+      <label>Scale
+        <input id="scaleInput" type="number" min="0.2" max="3" step="0.1" value="1.0" />
+      </label>
+      <button id="loadBtn">Load</button>
+    </div>
+  </header>
+  <main>
+    <div class="canvas-wrapper">
+      <canvas id="pdfCanvas"></canvas>
+    </div>
+    <div class="sidepanel">
+      <div>
+        <strong>Latest Click</strong>
+        <div id="latest" class="hint">Click anywhere on the canvas to capture coordinates.</div>
+      </div>
+      <textarea id="log" placeholder="Field log..."></textarea>
+      <button id="copyBtn">Copy Log</button>
+      <div class="hint">
+        Coordinates use PDF point space (origin bottom-left). Use ?file=assets/PB%202025.pdf&scale=1.2 in the URL to prefill settings.
+      </div>
+    </div>
+  </main>
+  <script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/pdfjs/pdf.worker.min.js';
+
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    const fileInput = document.getElementById('fileInput');
+    const pageInput = document.getElementById('pageInput');
+    const scaleInput = document.getElementById('scaleInput');
+    const loadBtn = document.getElementById('loadBtn');
+    const logArea = document.getElementById('log');
+    const latestEl = document.getElementById('latest');
+    const copyBtn = document.getElementById('copyBtn');
+
+    let pdfDoc = null;
+    let viewport = null;
+
+    const params = new URLSearchParams(window.location.search);
+    fileInput.value = params.get('file') || 'assets/PB 2025.pdf';
+    pageInput.value = params.get('page') || 1;
+    scaleInput.value = params.get('scale') || 1.0;
+
+    async function loadPdf(){
+      const url = fileInput.value.trim();
+      if(!url) return;
+      pdfDoc = await pdfjsLib.getDocument(url).promise;
+      const pageMax = pdfDoc.numPages;
+      pageInput.max = pageMax;
+      renderPage(Number(pageInput.value) || 1);
+    }
+
+    async function renderPage(pageNumber){
+      if(!pdfDoc) return;
+      const page = await pdfDoc.getPage(pageNumber);
+      viewport = page.getViewport({ scale: Number(scaleInput.value) || 1 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      latestEl.textContent = `Rendering page ${pageNumber} / ${pdfDoc.numPages}`;
+    }
+
+    canvas.addEventListener('click', event => {
+      if(!viewport) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const pdfX = (x / viewport.scale).toFixed(1);
+      const pdfY = ((viewport.height - y) / viewport.scale).toFixed(1);
+      const entry = `x:${pdfX}, y:${pdfY}, page:${pageInput.value}`;
+      latestEl.textContent = entry;
+      logArea.value += (logArea.value ? '\n' : '') + entry;
+    });
+
+    loadBtn.addEventListener('click', () => loadPdf());
+    pageInput.addEventListener('change', () => renderPage(Number(pageInput.value)));
+    scaleInput.addEventListener('change', () => renderPage(Number(pageInput.value)));
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(logArea.value);
+        latestEl.textContent = 'Log copied to clipboard';
+      } catch (err){
+        latestEl.textContent = 'Clipboard not available';
+      }
+    });
+
+    loadPdf().catch(err => {
+      latestEl.textContent = 'Failed to load PDF: ' + err.message;
+    });
+  </script>
+</body>
+</html>

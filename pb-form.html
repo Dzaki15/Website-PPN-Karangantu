@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Formulir Persetujuan Berlayar - ARSIP PINTAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page pb-form-page">
+  <header class="form-header stblkk-header">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('home.html')">←</button>
+    <div class="header-text">
+      <p class="eyebrow">Formulir Persetujuan</p>
+      <h1>Persetujuan Berlayar</h1>
+      <p class="subtitle">Isi data, centang persyaratan, lalu catat 7 tahapan.</p>
+    </div>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="form-logo" />
+  </header>
+
+  <main class="container stblkk-container">
+    <section class="intro-card">
+      <h2>Lengkapi persetujuan berlayar</h2>
+      <p>Isi data pengguna, centang persyaratan, lalu catat setiap tahapan proses hingga dokumen siap diunduh.</p>
+      <ul class="intro-list">
+        <li>Form mengikuti alur resmi PPN Karangantu.</li>
+        <li>Setiap langkah mencatat estimasi waktu dan keterangan lapangan.</li>
+        <li>Di akhir proses, unduh PDF atau simpan sebagai arsip.</li>
+      </ul>
+    </section>
+    <section class="progress-track" id="pbProgress">
+      <div class="progress-step active">
+        <span class="step-index">1</span>
+        <span class="step-label">Data</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">2</span>
+        <span class="step-label">Persyaratan</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">3</span>
+        <span class="step-label">Proses</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">4</span>
+        <span class="step-label">Tanda Tangan</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">5</span>
+        <span class="step-label">Download</span>
+      </div>
+    </section>
+
+    <form id="pbForm" novalidate>
+      <!-- Step 1: Data Pengguna -->
+      <section class="form-section stblkk-step active" data-step="0">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 1</p>
+            <h3>Data Pengguna</h3>
+            <p class="section-subtitle">Masukkan identitas pemohon.</p>
+          </div>
+          <span class="badge badge-primary">Wajib</span>
+        </div>
+
+        <div class="input-grid one">
+          <label class="form-field">
+            <span>Nama Pengguna*</span>
+            <input type="text" name="namaPengguna" id="namaPengguna" placeholder="Nama lengkap" required />
+          </label>
+          <label class="form-field">
+            <span>Alamat*</span>
+            <input type="text" name="alamat" id="alamat" placeholder="Alamat sesuai dokumen" required />
+          </label>
+          <label class="form-field">
+            <span>Tanggal*</span>
+            <input type="date" name="tanggal" id="tanggal" required />
+          </label>
+          <label class="form-field">
+            <span>Nama Pemberi Layanan*</span>
+            <input type="text" name="namaPemberi" id="namaPemberi" placeholder="Petugas yang melayani" required />
+          </label>
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev" disabled>Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 2: Persyaratan -->
+      <section class="form-section stblkk-step" data-step="1">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 2</p>
+            <h3>Persyaratan</h3>
+            <p class="section-subtitle">Centang dokumen yang sudah lengkap.</p>
+          </div>
+          <span class="badge">Checklist</span>
+        </div>
+
+        <div class="checklist requirement-list">
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Surat pernyataan kesiapan Kapal Perikanan berangkat dari Nakhoda (Master Sailing Declaration);" />
+            <span>Surat pernyataan kesiapan Kapal Perikanan berangkat dari Nakhoda (Master Sailing Declaration)</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Bukti pemenuhan pembayaran pajak pertambahan nilai, bagi Kapal Perikanan yang menggunakan bahan bakar minyak nonsubsidi;" />
+            <span>Bukti pemenuhan pembayaran pajak pertambahan nilai, bagi Kapal Perikanan yang menggunakan bahan bakar minyak nonsubsidi</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Surat Laik Operasi (SLO);" />
+            <span>Surat Laik Operasi (SLO)</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Surat Tanda Bukti Lapor Kedatangan Kapal (STBLKK);" />
+            <span>Surat Tanda Bukti Lapor Kedatangan Kapal (STBLKK)</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Perjanjian Kerja Laut (PKL); dan" />
+            <span>Perjanjian Kerja Laut (PKL)</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Dokumen kapal lainnya (Pas Besar/Pas Kecil, Sertifikat Kelaikan, Surat Ukur, Daftar Awak, Buku Sijil, dan dokumen terkait)" />
+            <span>Dokumen kapal lainnya (Pas Besar/Pas Kecil, Sertifikat Kelaikan, Surat Ukur, Daftar Awak, Buku Sijil, dan dokumen terkait)</span>
+          </label>
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Proses PB (7 tahapan) -->
+      <section class="form-section stblkk-step" data-step="2">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 3</p>
+            <h3>Catatan Proses PB</h3>
+            <p class="section-subtitle">Isi waktu mulai/selesai dan keterangan di tiap tahapan (7 langkah).</p>
+          </div>
+          <span class="badge">7 Tahap</span>
+        </div>
+
+        <div class="flow-wrapper">
+          <div class="flow-card">
+            <p class="flow-step" id="flowStepLabel">Langkah 1 dari 7</p>
+            <div class="flow-text" id="flowText"></div>
+            <div class="flow-time" id="flowTime">Waktu: 0 menit</div>
+            <div class="time-input-grid">
+              <label class="form-field">
+                <span>Mulai</span>
+                <input type="time" id="flowStart" />
+              </label>
+              <label class="form-field">
+                <span>Selesai</span>
+                <input type="time" id="flowEnd" />
+              </label>
+            </div>
+            <label class="form-field">
+              <span>Keterangan</span>
+              <textarea id="flowNotes" rows="4" placeholder="Catat hasil atau kondisi lapangan"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="nav-buttons flow-nav">
+          <button type="button" class="btn secondary" id="flowPrev">Sebelumnya</button>
+          <button type="button" class="btn primary" id="flowNext">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 4: Tanda Tangan -->
+      <section class="form-section stblkk-step" data-step="3" id="signatureStep">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Tanda Tangan</p>
+            <h3>Silakan tanda tangan Penerima Layanan</h3>
+            <p class="section-subtitle">Gunakan kanvas atau unggah file tanda tangan.</p>
+          </div>
+        </div>
+        <canvas id="signaturePad" width="520" height="200" aria-label="Bidang tanda tangan"></canvas>
+        <div class="signature-actions">
+          <button type="button" class="btn secondary" id="signatureSave">Simpan</button>
+          <button type="button" class="btn primary" id="signatureReset">Reset</button>
+        </div>
+        <label class="form-field file-label">
+          <span>Atau upload file tanda tangan</span>
+          <input type="file" id="signatureUpload" accept="image/*" />
+        </label>
+        <input type="hidden" name="signatureData" id="signatureData" />
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Kembali</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 5: Download -->
+      <section class="form-section stblkk-step" data-step="4">
+        <h2>Halaman Download</h2>
+        <p>Pratinjau dokumen sebelum mengunduh</p>
+        
+        <!-- Inline PDF Preview -->
+        <div id="pdfPreviewContainer" class="pdf-preview-container" style="margin: 20px 0; border: 2px solid #06b0b8; border-radius: 8px; padding: 15px; background: #f9f9f9; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center; color: #999;">
+            <p>Mempersiapkan preview PDF...</p>
+          </div>
+        </div>
+
+        <div class="pdf-preview-controls" style="margin: 15px 0; display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 14px;">
+          <button type="button" class="btn secondary" id="pdfPrevPage" style="padding: 8px 12px; font-size: 14px;">‹ Sebelumnya</button>
+          <span id="pdfPageIndicator" style="color: #666;">Halaman 1</span>
+          <button type="button" class="btn secondary" id="pdfNextPage" style="padding: 8px 12px; font-size: 14px;">Selanjutnya ›</button>
+        </div>
+
+        <div class="download-actions" style="flex-direction:column; gap:10px;">
+          <button type="button" class="btn primary" id="pbDownload">Download</button>
+          <button type="button" class="btn secondary" id="pbSave">Simpan & Ajukan</button>
+          <button type="button" class="btn secondary" id="pbHome">Beranda</button>
+          <button type="button" class="btn ghost" id="pbReset">Reset</button>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script src="js/pb-pdf-builder.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('pbForm');
+      if(!form) return;
+
+      const steps = Array.from(document.querySelectorAll('.stblkk-step'));
+      const progress = Array.from(document.querySelectorAll('#pbProgress .progress-step'));
+      const nextBtns = document.querySelectorAll('[data-action="next"]');
+      const prevBtns = document.querySelectorAll('[data-action="prev"]');
+      const signaturePad = document.getElementById('signaturePad');
+      const signatureSaveBtn = document.getElementById('signatureSave');
+      const signatureResetBtn = document.getElementById('signatureReset');
+      const signatureUpload = document.getElementById('signatureUpload');
+      const signatureDataInput = document.getElementById('signatureData');
+
+      const flowTextEl = document.getElementById('flowText');
+      const flowTimeEl = document.getElementById('flowTime');
+      const flowStepLabel = document.getElementById('flowStepLabel');
+      const flowStartInput = document.getElementById('flowStart');
+      const flowEndInput = document.getElementById('flowEnd');
+      const flowNotesInput = document.getElementById('flowNotes');
+      const flowPrevBtn = document.getElementById('flowPrev');
+      const flowNextBtn = document.getElementById('flowNext');
+
+      const flowSteps = [
+        { text: 'Menerima laporan rencana keberangkatan kapal yang dilengkapi dengan dokumen persyaratan administrasi untuk permohonan penerbitan Persetujuan Berlayar (PB) dari Nakhoda atau Pemilik Kapal Perikanan/Penanggung Jawab Perusahaan, dan meneruskan laporan serta kelengkapannya kepada Petugas Kesyahbandaran', time: '5 Menit' },
+        { text: 'Melakukan pemeriksaan kelengkapan surat dan validitas dokumen kapal perikanan untuk penerbitan PB, dan dokumen kapal lainnya termasuk pemeriksaan kewajiban pelunasan PNBP PHP, dan menyampaikan hasil pemeriksaan tersebut kepada Syahbandar di Pelabuhan Perikanan', time: '10 Menit' },
+        { text: 'Menerima hasil pemeriksaan kelengkapan surat dan validitas dokumen kapal perikanan untuk penerbitan PB, dan dokumen kapal lainnya termasuk pemeriksaan kewajiban pelunasan PNBP PHP dan menugaskan pemeriksaan teknis dan nautis kepada Petugas Kesyahbandaran', time: '5 Menit' },
+        { text: 'Melakukan pemeriksaan di atas kapal, terkait: a. teknis dan nautis terhadap kapal perikanan dan alat penangkapan ikan, alat bantu penangkapan ikan; dan; b. pemeriksaan persyaratan pengawakan kapal perikanan, untuk selanjutnya hasil pemerikasaan tersebut disampaikan kepada Syahbandar di Pelabuhan Perikanan', time: '60 Menit' },
+        { text: 'Melakukan pemeriksaan ulang kelengkapan dokumen kapal perikanan untuk melihat kelengkapan dan kesesuaian dokumen Kapal Perikanan. Berdasarkan hasil pemeriksaan ulang dinyatakan lengkap dan sesuai, selanjutnya dilakukan penandatanganan dalam aplikasi Teman SPB dan memerintahkan kepada Petugas Kesyahbanadaran untuk proses lanjut.', time: '10 Menit' },
+        { text: 'Mencetak dan menyerahkan PB kepada Syahbandar di Pelabuhan Perikanan dan mengarsipkan salinan dokumen PB', time: '5 Menit' },
+        { text: 'Menerima dokumen PB dan menyerahkan kepada Nakhoda atau Pemilik Kapal Perikanan/Penanggung Jawab Perusahaan', time: '15 Menit' }
+      ];
+
+      const flowState = flowSteps.map(step => ({ ...step, mulai: '', selesai: '', catatan: '' }));
+      let currentStepIndex = 0;
+      let currentFlowIndex = 0;
+
+      function updateProgress(){
+        progress.forEach((p, idx) => {
+          p.classList.toggle('active', idx === currentStepIndex);
+          p.classList.toggle('completed', idx < currentStepIndex);
+        });
+      }
+
+      function showStep(idx){
+        // Simpan progres flow sebelum berpindah
+        if(currentStepIndex === 2) {
+          persistFlowInputs();
+        }
+        currentStepIndex = Math.max(0, Math.min(idx, steps.length - 1));
+        steps.forEach((sec, i) => sec.classList.toggle('active', i === currentStepIndex));
+        updateProgress();
+        if(currentStepIndex === 2) renderFlowStep();
+      }
+
+      function validateStep(idx){
+        const section = steps[idx];
+        if(!section) return true;
+        const requiredFields = Array.from(section.querySelectorAll('[required]'));
+        for(const field of requiredFields){
+          if(field.disabled) continue;
+          if(!field.value){
+            field.reportValidity();
+            field.focus();
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function goNext(){
+        if(!validateStep(currentStepIndex)) return;
+        showStep(currentStepIndex + 1);
+      }
+
+      function goPrev(){
+        if(currentStepIndex === 0) return navigateWithFade('home.html');
+        showStep(currentStepIndex - 1);
+      }
+
+      nextBtns.forEach(btn => btn.addEventListener('click', goNext));
+      prevBtns.forEach(btn => btn.addEventListener('click', goPrev));
+
+      // Progress bar clickable
+      progress.forEach((p, idx) => {
+        p.style.cursor = 'pointer';
+        p.setAttribute('role', 'button');
+        p.setAttribute('tabindex', '0');
+        p.addEventListener('click', () => showStep(idx));
+        p.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' || e.key === ' '){
+            e.preventDefault();
+            showStep(idx);
+          }
+        });
+      });
+
+      function persistFlowInputs(){
+        const state = flowState[currentFlowIndex];
+        if(!state) return;
+        state.mulai = flowStartInput.value;
+        state.selesai = flowEndInput.value;
+        state.catatan = flowNotesInput.value;
+      }
+
+      function renderFlowStep(){
+        const step = flowState[currentFlowIndex];
+        if(!step) return;
+        flowTextEl.textContent = step.text;
+        flowTimeEl.textContent = `Waktu: ${step.time}`;
+        flowStepLabel.textContent = `Langkah ${currentFlowIndex + 1} dari ${flowSteps.length}`;
+        flowStartInput.value = step.mulai;
+        flowEndInput.value = step.selesai;
+        flowNotesInput.value = step.catatan;
+        flowPrevBtn.textContent = currentFlowIndex === 0 ? 'Kembali ke persyaratan' : 'Sebelumnya';
+        flowNextBtn.textContent = currentFlowIndex === flowSteps.length - 1 ? 'Lanjut ke Tanda Tangan' : 'Selanjutnya';
+      }
+
+      flowPrevBtn.addEventListener('click', () => {
+        persistFlowInputs();
+        if(currentFlowIndex === 0){
+          showStep(1);
+          return;
+        }
+        currentFlowIndex = Math.max(0, currentFlowIndex - 1);
+        renderFlowStep();
+      });
+
+      flowNextBtn.addEventListener('click', () => {
+        persistFlowInputs();
+        if(currentFlowIndex < flowSteps.length - 1){
+          currentFlowIndex++;
+          renderFlowStep();
+        } else {
+          showStep(3);
+        }
+      });
+
+      function collectData(){
+        const payload = {
+          namaLayanan: 'Pelayanan PB',
+          namaPengguna: document.getElementById('namaPengguna').value.trim(),
+          alamat: document.getElementById('alamat').value.trim(),
+          tanggal: document.getElementById('tanggal').value,
+          namaPemberi: document.getElementById('namaPemberi').value.trim(),
+          requirements: Array.from(document.querySelectorAll('input[name="persyaratan"]:checked')).map(cb => cb.value),
+          // Track which items are checked by their index (0-5)
+          requirementsChecked: Array.from(document.querySelectorAll('input[name="persyaratan"]')).map((cb, idx) => cb.checked ? idx : -1).filter(idx => idx >= 0),
+          flowSteps: flowState,
+          signature: (signatureDataInput && signatureDataInput.value) || localStorage.getItem('pbSignature') || '',
+          createdAt: new Date().toISOString()
+        };
+        return payload;
+      }
+
+      async function persistDraft(payload){
+        const existingId = Number(localStorage.getItem('pbFormId'));
+        try{
+          if(existingId){
+            const res = await apiPut(`/api/pb/${existingId}`, { data: payload, status: 'draft' });
+            localStorage.setItem('pbFormId', String(res.id));
+            localStorage.setItem('pbFormData', JSON.stringify(res.data));
+            return res;
+          } else {
+            const res = await apiPost('/api/pb', payload);
+            localStorage.setItem('pbFormId', String(res.id));
+            localStorage.setItem('pbFormData', JSON.stringify(res.data));
+            return res;
+          }
+        }catch(err){
+          console.error('Persist to server failed, falling back to localStorage:', err);
+          try {
+            const idFallback = existingId || Date.now();
+            localStorage.setItem('pbFormId', String(idFallback));
+            localStorage.setItem('pbFormData', JSON.stringify(payload));
+          } catch(e) {
+            console.warn('Local fallback failed:', e);
+          }
+          // Do not block the flow; proceed offline
+          return { id: existingId || -1, data: payload, offline: true };
+        }
+      }
+
+      // Signature canvas handling
+      if(signaturePad){
+        const ctx = signaturePad.getContext('2d');
+        let isDrawing = false;
+
+        function clearSignature(){
+          ctx.clearRect(0, 0, signaturePad.width, signaturePad.height);
+          if(signatureDataInput) signatureDataInput.value = '';
+          localStorage.removeItem('pbSignature');
+          if(signatureUpload) signatureUpload.value = '';
+        }
+
+        function saveSignature(){
+          const data = signaturePad.toDataURL('image/png');
+          if(signatureDataInput) signatureDataInput.value = data;
+          localStorage.setItem('pbSignature', data);
+        }
+
+        // Mouse
+        signaturePad.addEventListener('mousedown', (e) => {
+          isDrawing = true;
+          const rect = signaturePad.getBoundingClientRect();
+          ctx.beginPath();
+          ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        });
+        signaturePad.addEventListener('mousemove', (e) => {
+          if(!isDrawing) return;
+          const rect = signaturePad.getBoundingClientRect();
+          ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+          ctx.stroke();
+        });
+        signaturePad.addEventListener('mouseup', () => isDrawing = false);
+        signaturePad.addEventListener('mouseout', () => isDrawing = false);
+
+        // Touch
+        signaturePad.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          isDrawing = true;
+          const rect = signaturePad.getBoundingClientRect();
+          const t = e.touches[0];
+          ctx.beginPath();
+          ctx.moveTo(t.clientX - rect.left, t.clientY - rect.top);
+        });
+        signaturePad.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          if(!isDrawing) return;
+          const rect = signaturePad.getBoundingClientRect();
+          const t = e.touches[0];
+          ctx.lineTo(t.clientX - rect.left, t.clientY - rect.top);
+          ctx.stroke();
+        });
+        signaturePad.addEventListener('touchend', () => isDrawing = false);
+
+        if(signatureResetBtn){
+          signatureResetBtn.addEventListener('click', () => {
+            clearSignature();
+          });
+        }
+        if(signatureSaveBtn){
+          signatureSaveBtn.addEventListener('click', () => {
+            saveSignature();
+            alert('Tanda tangan tersimpan');
+          });
+        }
+        if(signatureUpload){
+          signatureUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const img = new Image();
+              img.onload = () => {
+                clearSignature();
+                const scale = Math.min(signaturePad.width / img.width, signaturePad.height / img.height);
+                const x = (signaturePad.width - img.width * scale) / 2;
+                const y = (signaturePad.height - img.height * scale) / 2;
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                saveSignature();
+              };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        // Load saved signature if any
+        const saved = localStorage.getItem('pbSignature');
+        if(saved){
+          const img = new Image();
+          img.onload = () => {
+            ctx.clearRect(0, 0, signaturePad.width, signaturePad.height);
+            const scale = Math.min(signaturePad.width / img.width, signaturePad.height / img.height);
+            const x = (signaturePad.width - img.width * scale) / 2;
+            const y = (signaturePad.height - img.height * scale) / 2;
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            if(signatureDataInput) signatureDataInput.value = saved;
+          };
+          img.src = saved;
+        }
+      }
+
+      // Download + PDF preview
+      let pdfDoc = null;
+      let pdfPageNum = 1;
+      let pdfBlob = null;
+
+      async function buildAndRenderPDF(){
+        try{
+          const data = collectData();
+          const { blob } = await generatePbPdf(data);
+          pdfBlob = blob;
+          const arrayBuffer = await blob.arrayBuffer();
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          pdfDoc = await loadingTask.promise;
+          renderPdfPage(1);
+        }catch(err){
+          console.error('Error build PDF:', err);
+          const container = document.getElementById('pdfPreviewContainer');
+          if(container){
+            container.innerHTML = '<div style="color:red;text-align:center;">Gagal memuat preview PDF</div>';
+          }
+        }
+      }
+
+      async function renderPdfPage(num){
+        if(!pdfDoc) return;
+        pdfPageNum = num;
+        const page = await pdfDoc.getPage(num);
+        const scale = 1.2;
+        const viewport = page.getViewport({ scale });
+
+        const container = document.getElementById('pdfPreviewContainer');
+        if(!container) return;
+        container.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.style.maxWidth = '100%';
+        canvas.style.height = 'auto';
+        container.appendChild(canvas);
+
+        await page.render({ canvasContext: context, viewport }).promise;
+        const indicator = document.getElementById('pdfPageIndicator');
+        if(indicator) indicator.textContent = `Halaman ${num} dari ${pdfDoc.numPages}`;
+        const prevBtn = document.getElementById('pdfPrevPage');
+        const nextBtn = document.getElementById('pdfNextPage');
+        if(prevBtn) prevBtn.disabled = (num <= 1);
+        if(nextBtn) nextBtn.disabled = (num >= pdfDoc.numPages);
+      }
+
+      const pdfPrevBtn = document.getElementById('pdfPrevPage');
+      if(pdfPrevBtn){
+        pdfPrevBtn.addEventListener('click', () => {
+          if(pdfDoc && pdfPageNum > 1) renderPdfPage(pdfPageNum - 1);
+        });
+      }
+      const pdfNextBtn = document.getElementById('pdfNextPage');
+      if(pdfNextBtn){
+        pdfNextBtn.addEventListener('click', () => {
+          if(pdfDoc && pdfPageNum < pdfDoc.numPages) renderPdfPage(pdfPageNum + 1);
+        });
+      }
+
+      // Download buttons
+      const pbDownloadBtn = document.getElementById('pbDownload');
+      if(pbDownloadBtn){
+        pbDownloadBtn.addEventListener('click', async () => {
+          persistFlowInputs();
+          const data = collectData();
+          try { localStorage.setItem('pbFormData', JSON.stringify(data)); } catch {}
+          try { await persistDraft(data); } catch(e) { console.warn('Offline draft save:', e); }
+          const { blob, fileName } = await generatePbPdf(data);
+
+          // Save to Arsip Dokumen (exact PDF bytes)
+          try {
+            if(typeof window.archiveDocument === 'function'){
+              window.archiveDocument({
+                serviceSlug: 'pb',
+                serviceName: 'Persetujuan Berlayar',
+                userName: (data.namaPengguna || data.nama || ''),
+                data,
+                fileName,
+                pdfBlob: blob
+              });
+            }
+          } catch(e){
+            console.warn('Gagal menyimpan PB ke Arsip Dokumen:', e);
+          }
+
+          downloadPbPdf(blob, fileName);
+        });
+      }
+
+      const pbSaveBtn = document.getElementById('pbSave');
+      if(pbSaveBtn){
+        pbSaveBtn.addEventListener('click', async () => {
+          persistFlowInputs();
+          const data = collectData();
+          try { localStorage.setItem('pbFormData', JSON.stringify(data)); } catch {}
+          try { await persistDraft(data); } catch(e) { console.warn('Draft PB gagal disimpan:', e); }
+
+          // Save to Arsip Dokumen (exact PDF bytes)
+          try {
+            const { blob, fileName } = await generatePbPdf(data);
+            if(typeof window.archiveDocument === 'function'){
+              window.archiveDocument({
+                serviceSlug: 'pb',
+                serviceName: 'Persetujuan Berlayar',
+                userName: (data.namaPengguna || data.nama || ''),
+                data,
+                fileName,
+                pdfBlob: blob
+              });
+            }
+          } catch(e){
+            console.warn('Gagal menyimpan PB ke Arsip Dokumen:', e);
+          }
+
+          alert('Data tersimpan');
+        });
+      }
+
+      const pbHomeBtn = document.getElementById('pbHome');
+      if(pbHomeBtn){
+        pbHomeBtn.addEventListener('click', () => navigateWithFade('home.html'));
+      }
+
+      const pbResetBtn = document.getElementById('pbReset');
+      if(pbResetBtn){
+        pbResetBtn.addEventListener('click', () => {
+          if(confirm('Reset semua data PB?')){
+            document.getElementById('pbForm').reset();
+            flowState.forEach(s => { s.mulai=''; s.selesai=''; s.catatan=''; });
+            currentFlowIndex = 0;
+            if(signaturePad){
+              const ctx = signaturePad.getContext('2d');
+              ctx.clearRect(0,0,signaturePad.width, signaturePad.height);
+            }
+            localStorage.removeItem('pbFormData');
+            localStorage.removeItem('pbSignature');
+            showStep(0);
+          }
+        });
+      }
+
+      // Trigger PDF build when entering download step
+      const originalShowStep = showStep;
+      showStep = function(idx){
+        originalShowStep(idx);
+        if(idx === 4){
+          setTimeout(buildAndRenderPDF, 100);
+        }
+      };
+
+      // Configure pdf.js worker
+      if(typeof pdfjsLib !== 'undefined'){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+      }
+
+      showStep(0);
+    });
+  </script>
+</body>
+</html>

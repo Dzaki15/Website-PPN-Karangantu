@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Admin</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page home-page">
+  <header class="site-header">
+    <div class="navbar-container">
+      <div class="home-header" style="flex:1;">
+        <div class="user-left" style="cursor: default;">
+          <div class="avatar" id="userAvatar">
+            <img id="avatarImage" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;">
+            <img id="avatarPlaceholder" src="assets/Profile Idle Icon.png" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+          </div>
+          <div>
+            <div id="greeting" class="greeting">Hi, Admin!</div>
+            <div class="sub">Dashboard Admin</div>
+          </div>
+        </div>
+
+        <div class="user-right">
+          <button class="logout-btn" id="logoutBtn" type="button"><img src="assets/Logout Icon.png" alt="Logout" class="logout-icon" /></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="welcome-box">
+      <div class="welcome-content">
+        <div>
+          <h3>Incoming Documents</h3>
+          <p>Lihat dokumen masuk dari seluruh pengguna, lalu tanda tangani dan set tanggal.</p>
+        </div>
+        <img src="assets/10 1 (1).png" alt="Welcome" class="welcome-illustration" />
+      </div>
+    </div>
+
+    <h4 class="section-title">Category</h4>
+
+    <div class="grid-categories">
+      <div class="cat admin-cat" data-service="skkp" onclick="navigateWithFade('admin-skkp.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="skkp" hidden>0</span>
+        <img src="assets/SKKP Icon (1).png" alt="SKKP" class="cat-icon-img">
+        <div class="cat-label">SKKP</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="pb" onclick="navigateWithFade('admin-pb.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="pb" hidden>0</span>
+        <img src="assets/PB Icon.png" alt="PB" class="cat-icon-img">
+        <div class="cat-label">PB</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="pengadaan-es" onclick="navigateWithFade('admin-pengadaan-es.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="pengadaan-es" hidden>0</span>
+        <img src="assets/Pengadaan ES Icon.png" alt="Pengadaan ES" class="cat-icon-img">
+        <div class="cat-label">Pengadaan ES</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="stblkk" onclick="navigateWithFade('admin-stblkk.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="stblkk" hidden>0</span>
+        <img src="assets/STBLKK Icon.png" alt="STBLKK" class="cat-icon-img">
+        <div class="cat-label">STBLKK</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="shti-lt" onclick="navigateWithFade('admin-shti-lt.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="shti-lt" hidden>0</span>
+        <img src="assets/SHTI LT Icon.png" alt="SHTI LT" class="cat-icon-img">
+        <div class="cat-label">SHTI LT</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="jasa-listrik" onclick="navigateWithFade('admin-jasa-listrik.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="jasa-listrik" hidden>0</span>
+        <img src="assets/Jasa Listrik Icon.png" alt="Jasa Listrik" class="cat-icon-img">
+        <div class="cat-label">Jasa Listrik</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="penggunaan-arra" onclick="navigateWithFade('admin-penggunaan-arra.html')" style="cursor:pointer;">
+        <span class="badge badge-primary cat-badge" data-badge-for="penggunaan-arra" hidden>0</span>
+        <img src="assets/Penggunaan ARRA ES Icon.png" alt="Penggunaan ARRA ES" class="cat-icon-img">
+        <div class="cat-label">Penggunaan ARRA ES</div>
+      </div>
+
+      <div class="cat admin-cat" data-service="arsip" onclick="navigateWithFade('admin-arsip.html')" style="cursor:pointer;">
+        <span class="badge badge-success cat-badge" id="arsipAdminBadge" hidden>0</span>
+        <img src="assets/ARSIP Dokumen Icon.png" alt="Arsip Admin" class="cat-icon-img">
+        <div class="cat-label">Arsip Admin</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="js/admin-home.js"></script>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-text">PPN Karangantu • Admin Dashboard</p>
+    </div>
+  </footer>
+</body>
+</html>

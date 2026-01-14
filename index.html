@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Loading</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page loading-page">
+  <div class="loading-screen">
+    <div class="loading-content">
+      <!-- Logo PIPP langsung tanpa kontainer -->
+      <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="PIPP Logo" class="loading-logo" />
+      
+      <!-- Teks ARSIP PINTAR -->
+      <h1 class="loading-title">ARSIP PINTAR</h1>
+      
+      <!-- Subtitle -->
+      <p class="loading-subtitle">Platform Layanan Digital — PPN Karangantu</p>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Otomatis lanjut ke welcome setelah 2.5 detik
+    setTimeout(() => {
+      navigateWithFade('welcome.html');
+    }, 2500);
+  </script>
+</body>
+</html>

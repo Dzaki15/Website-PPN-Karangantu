@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - SHTI LT</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page feature-page">
+  <header class="topbar">
+    <button class="back-btn" onclick="navigateWithFade('admin-home.html')">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="logo" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <div class="section-header-row" style="align-items: center;">
+      <div>
+        <p class="section-eyebrow">Admin</p>
+        <h2 style="margin:0;">SHTI LT</h2>
+        <p class="section-subtitle">Dokumen masuk (pending) untuk ditandatangani.</p>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span class="badge badge-primary" id="pendingCount" hidden>0</span>
+        <button class="btn ghost" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-layout">
+      <section class="admin-list">
+        <div style="display:flex; gap:10px; align-items:center; margin: 6px 6px 12px;">
+          <input id="searchInput" placeholder="Cari nama / file..." style="flex:1;" />
+          <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
+        </div>
+        <div id="list"></div>
+      </section>
+
+      <section class="admin-panel">
+        <p class="section-eyebrow">Preview</p>
+        <h3 id="previewTitle" style="margin: 0 0 6px;">Pilih dokumen</h3>
+        <p id="previewMeta" class="section-subtitle" style="margin-top: 0;">—</p>
+
+        <iframe id="previewFrame" class="admin-preview-frame" title="Preview PDF"></iframe>
+
+        <hr style="border:0; border-top: 1px solid rgba(2,40,45,0.08); margin: 14px 0;" />
+
+        <p class="section-eyebrow">Tanda Tangan</p>
+        <div class="input-grid two" style="margin-bottom: 10px;">
+          <div class="form-field">
+            <label for="signerName">Nama Pemberi Layanan</label>
+            <input id="signerName" type="text" placeholder="Nama pemberi layanan" />
+          </div>
+          <div class="form-field">
+            <label for="signedDate">Tanggal</label>
+            <input id="signedDate" type="date" />
+          </div>
+        </div>
+        <div class="input-grid two" style="margin-bottom: 10px;">
+          <div class="form-field">
+            <label for="sigUpload">Upload TTD</label>
+            <input id="sigUpload" type="file" accept="image/*" />
+          </div>
+          <div class="form-field" style="justify-content:flex-end;">
+            <button id="clearSig" class="btn ghost" type="button" style="margin-top: 22px;">Hapus TTD</button>
+          </div>
+        </div>
+
+        <canvas id="sigCanvas" class="signature-canvas"></canvas>
+
+        <div style="display:flex; gap:10px; margin-top: 12px;">
+          <button id="signBtn" class="btn primary" type="button" disabled>Tandatangani</button>
+          <button id="rejectBtn" class="btn ghost" type="button" disabled style="color:#ef4444; border-color:#ef4444;">Tolak</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="js/admin-submissions.js"></script>
+  <script>
+    window.initAdminSubmissionsPage({
+      serviceSlug: 'shti-lt',
+      serviceTitle: 'SHTI LT'
+    });
+  </script>
+</body>
+</html>

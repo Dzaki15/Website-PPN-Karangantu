@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Register</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page register-page">
+  <header class="topbar">
+    <button class="back-btn" onclick="navigateWithFade('welcome.html')">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="logo" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <h2 class="headline">Create New Account</h2>
+
+    <form id="registerForm" class="form-card">
+      <label>Full Name</label>
+      <input type="text" id="regName" placeholder="Nama Lengkap" required>
+
+      <label>Email</label>
+      <input type="email" id="regEmail" placeholder="Email" required>
+
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="Password" required>
+
+      <div class="checkbox-line">
+        <input type="checkbox" id="agree" />
+        <label for="agree">I agree with the <strong>Terms of services</strong> and <strong>Privacy Policy</strong></label>
+      </div>
+
+      <button type="submit" class="btn primary">Sign Up</button>
+    </form>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Register via backend API
+    document.getElementById('registerForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const agree = document.getElementById('agree').checked;
+
+      if(!agree){
+        alert('Silakan setujui Terms of services dan Privacy Policy.');
+        return;
+      }
+      if(!name || !email || !password){
+        alert('Lengkapi semua bidang.');
+        return;
+      }
+
+      try{
+        const res = await apiPost('/api/register', { name, email, password });
+        setAuth(res.user, res.token);
+        alert('Pendaftaran berhasil! Kamu akan diarahkan ke halaman utama.');
+        navigateWithFade('home.html');
+      } catch(err){
+        if(isNetworkError(err)){
+          try{
+            const localRes = registerLocalUser({ name, email, password });
+            setAuth(localRes.user, localRes.token);
+            alert('Server offline. Akun disimpan di perangkat ini.');
+            navigateWithFade('home.html');
+          } catch(localErr){
+            alert(localErr.message || 'Gagal mendaftar secara offline');
+          }
+        } else {
+          alert(err.message || 'Gagal mendaftar');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

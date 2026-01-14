@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tanda Tangan Jasa Listrik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page feature-page">
+  <header class="topbar">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('jasa-listrik.html')">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <h2>Tanda Tangan Penerima Layanan</h2>
+    <p class="section-subtitle">Gambar tanda tangan Anda di kotak di bawah ini</p>
+
+    <div class="signature-container">
+      <canvas id="signatureCanvas" width="600" height="200"></canvas>
+    </div>
+
+    <div class="signature-actions">
+      <button type="button" id="clearSignature" class="btn secondary">Hapus</button>
+      <button type="button" id="saveSignature" class="btn primary">Simpan & Lanjutkan</button>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let lastX = 0, lastY = 0;
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseout', () => isDrawing = false);
+
+    // Touch support
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      isDrawing = true;
+      [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      [lastX, lastY] = [x, y];
+    });
+
+    canvas.addEventListener('touchend', () => isDrawing = false);
+
+    document.getElementById('clearSignature').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    document.getElementById('saveSignature').addEventListener('click', () => {
+      const signatureData = canvas.toDataURL('image/png');
+      localStorage.setItem('jasaListrikSignature', signatureData);
+      navigateWithFade('jasa-listrik-preview.html');
+    });
+  </script>
+</body>
+</html>

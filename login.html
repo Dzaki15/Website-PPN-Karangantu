@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Login</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page login-page">
+  <header class="topbar-right">
+    <button class="back-btn" onclick="navigateWithFade('welcome.html')" style="position: absolute; left: 20px; top: 12px;">←</button>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="KKP Logo" class="topbar-logo" />
+  </header>
+
+  <main class="container">
+    <h2 class="headline">Log In</h2>
+
+    <form id="loginForm" class="form-card">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="Masukan Email" required>
+
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Masukan Password" required>
+
+      <div class="right-link">
+        <a href="#" onclick="alert('Fitur lupa password belum tersedia')">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="btn primary">Log In</button>
+
+      <p class="muted">Don't have an account ? <a href="#" onclick="navigateWithFade('register.html')">Sign Up</a></p>
+    </form>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Login via backend API
+    document.getElementById('loginForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      try{
+        const res = await apiPost('/api/login', { email, password });
+        setAuth(res.user, res.token);
+        if(res.user && res.user.role === 'admin'){
+          navigateWithFade('admin-home.html');
+        } else {
+          navigateWithFade('home.html');
+        }
+      } catch(err){
+        if(isNetworkError(err)){
+          try{
+            const localRes = loginLocalUser({ email, password });
+            setAuth(localRes.user, localRes.token);
+            alert('Server offline. Menggunakan akun lokal.');
+            navigateWithFade('home.html');
+          } catch(localErr){
+            alert(localErr.message || 'Gagal login secara offline');
+          }
+        } else {
+          alert(err.message || 'Gagal login');
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>

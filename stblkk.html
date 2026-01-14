@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Formulir Persetujuan STBLKK - ARSIP PINTAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page stblkk-page">
+  <header class="form-header stblkk-header">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('home.html')">←</button>
+    <div class="header-text">
+      <p class="eyebrow">Formulir Persetujuan</p>
+      <h1>STBLKK</h1>
+      <p class="subtitle">Surat Tanda Bukti Lapor Kedatangan Kapal</p>
+    </div>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="form-logo" />
+  </header>
+
+  <main class="container stblkk-container">
+    <section class="intro-card">
+      <h2>Lengkapi berita acara kedatangan kapal</h2>
+      <p>Isi data pengguna, centang persyaratan, lalu catat setiap tahapan proses STBLKK hingga dokumen siap diunduh.</p>
+      <ul class="intro-list">
+        <li>Form mengikuti alur resmi Pelabuhan Perikanan Nusantara Karangantu.</li>
+        <li>Setiap langkah mencatat estimasi waktu dan keterangan lapangan.</li>
+        <li>Di akhir proses, unduh draf STBLKK atau simpan sebagai arsip.</li>
+      </ul>
+    </section>
+
+    <section class="progress-track" id="stblkkProgress">
+      <div class="progress-step active">
+        <span class="step-index">1</span>
+        <span class="step-label">Data</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">2</span>
+        <span class="step-label">Persyaratan</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">3</span>
+        <span class="step-label">Proses</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">4</span>
+        <span class="step-label">TTD</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-index">5</span>
+        <span class="step-label">Download</span>
+      </div>
+    </section>
+
+    <form id="stblkkForm" novalidate>
+      <!-- Step 1: Data Pengguna -->
+      <section class="form-section stblkk-step active" data-step="1">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 1</p>
+            <h3>Data Pengguna</h3>
+            <p class="section-subtitle">Masukkan identitas yang tercantum pada permohonan.</p>
+          </div>
+          <span class="badge badge-primary">Wajib</span>
+        </div>
+
+        <div class="input-grid one">
+          <label class="form-field">
+            <span>Nama Pengguna*</span>
+            <input type="text" name="namaPengguna" placeholder="Nama lengkap" required />
+          </label>
+          <label class="form-field">
+            <span>Alamat*</span>
+            <input type="text" name="alamatPengguna" placeholder="Alamat sesuai dokumen" required />
+          </label>
+          <label class="form-field">
+            <span>Tanggal*</span>
+            <input type="date" name="tanggalPengajuan" required />
+          </label>
+          <label class="form-field">
+            <span>Nama Pemberi Layanan*</span>
+            <input type="text" name="namaPemberiLayanan" placeholder="Petugas yang melayani" required />
+          </label>
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev" disabled>Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 2: Persyaratan -->
+      <section class="form-section stblkk-step" data-step="2">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 2</p>
+            <h3>Persyaratan</h3>
+            <p class="section-subtitle">Centang dokumen yang telah diterima untuk verifikasi.</p>
+          </div>
+          <span class="badge">Checklist</span>
+        </div>
+
+        <div class="checklist requirement-list">
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Persetujuan Berlayar asal" />
+            <span>Persetujuan Berlayar asal</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Perizinan Berusaha" />
+            <span>Perizinan Berusaha</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Log book Penangkapan Ikan" />
+            <span>Log book Penangkapan Ikan</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Daftar Nakhoda dan Daftar Anak Buah Kapal" />
+            <span>Daftar Nakhoda dan Daftar Anak Buah Kapal</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Berita Acara Alih Muat; dan/atau" />
+            <span>Berita Acara Alih Muat; dan/atau</span>
+          </label>
+          <label class="checkbox-pill full">
+            <input type="checkbox" name="persyaratan" value="Dokumen kapal lainnya (Pas Besar/Pas Kecil, Sertifikat Kelaikan, Surat Ukur, dan dokumen terkait lainnya)" />
+            <span>Dokumen kapal lainnya (Pas Besar/Pas Kecil, Sertifikat Kelaikan, Surat Ukur, dll)</span>
+          </label>
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Proses STBLKK -->
+      <section class="form-section stblkk-step" data-step="3">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 3</p>
+            <h3>Catatan Proses</h3>
+            <p class="section-subtitle">Isi waktu mulai/selesai dan keterangan di tiap tahapan.</p>
+          </div>
+          <span class="badge">7 Tahap</span>
+        </div>
+
+        <div class="flow-wrapper">
+          <div class="flow-card">
+            <p class="flow-step" id="flowStepLabel">Langkah 1 dari 7</p>
+            <div class="flow-text" id="flowText"></div>
+            <div class="flow-time" id="flowTime">Waktu: 0 menit</div>
+            <div class="time-input-grid">
+              <label class="form-field">
+                <span>Mulai</span>
+                <input type="time" id="flowStart" />
+              </label>
+              <label class="form-field">
+                <span>Selesai</span>
+                <input type="time" id="flowEnd" />
+              </label>
+            </div>
+            <label class="form-field">
+              <span>Keterangan</span>
+              <textarea id="flowNotes" rows="4" placeholder="Catat hasil atau kondisi lapangan"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="nav-buttons flow-nav">
+          <button type="button" class="btn secondary" id="flowPrev">Sebelumnya</button>
+          <button type="button" class="btn primary" id="flowNext" data-last-label="Lanjut ke tanda tangan">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 4: Tanda Tangan -->
+      <section class="form-section stblkk-step" data-step="3" id="signatureStep">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Tanda Tangan</p>
+            <h3>Silakan tanda tangan Penerima Layanan</h3>
+            <p class="section-subtitle">Gunakan kanvas atau unggah file tanda tangan.</p>
+          </div>
+          <span class="badge">Opsional</span>
+        </div>
+        <canvas id="signaturePad" width="520" height="200" aria-label="Bidang tanda tangan"></canvas>
+        <div class="signature-actions">
+          <button type="button" class="btn secondary" id="signatureSave">Simpan</button>
+          <button type="button" class="btn primary" id="signatureReset">Reset</button>
+        </div>
+        <label class="form-field file-label">
+          <span>Atau upload file tanda tangan</span>
+          <input type="file" id="signatureUpload" accept="image/*" />
+        </label>
+        <input type="hidden" name="signatureData" id="signatureData" />
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Kembali</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <!-- Step 5: Unduh -->
+      <section class="form-section stblkk-step" data-step="4">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Langkah 5</p>
+            <h3>Halaman Download</h3>
+            <p class="section-subtitle">Unduh draf STBLKK atau simpan sebagai arsip.</p>
+          </div>
+          <span class="badge badge-success">Final</span>
+        </div>
+
+        <!-- Inline PDF Preview -->
+        <div id="pdfPreviewContainer" class="pdf-preview-container" style="margin: 20px 0; border: 2px solid #06b0b8; border-radius: 8px; padding: 15px; background: #f9f9f9; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center; color: #999;">
+            <p>Mempersiapkan preview PDF...</p>
+          </div>
+        </div>
+
+        <div class="pdf-preview-controls" style="margin: 15px 0; display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 14px;">
+          <button type="button" class="btn secondary" id="pdfPrevPage" style="padding: 8px 12px; font-size: 14px;">‹ Sebelumnya</button>
+          <span id="pdfPageIndicator" style="color: #666;">Halaman 1</span>
+          <button type="button" class="btn secondary" id="pdfNextPage" style="padding: 8px 12px; font-size: 14px;">Selanjutnya ›</button>
+        </div>
+
+        <div class="download-actions" style="flex-direction:column; gap:10px;">
+          <button type="button" class="btn primary" id="downloadPdf">Download PDF</button>
+          <button type="button" class="btn secondary" id="saveDraft">Simpan & Ajukan</button>
+          <button type="button" class="btn secondary" id="backToHome">Beranda</button>
+          <button type="button" class="btn ghost" id="resetForm">Reset</button>
+        </div>
+      </section>
+    </form>
+
+    <div id="stblkkToast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script src="js/stblkk-pdf-builder.js"></script>
+  <script src="js/stblkk.js"></script>
+  <script>
+    // Setup pdf.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+  </script>
+</body>
+</html>

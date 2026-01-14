@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARSIP PINTAR - Preview Dokumen Pengadaan ES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .preview-container {
+      background: white;
+      border: 3px solid var(--primary);
+      border-radius: 14px;
+      padding: 24px;
+      margin: 20px 0;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .pdf-viewer {
+      width: 100%;
+      min-height: 380px;
+      max-height: 760px;
+      overflow: auto;
+      border-radius: 10px;
+      background: transparent;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    #pdfPages { 
+      width: 100%; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 18px; 
+      align-items: center; 
+    }
+    .pdf-page-placeholder {
+      width: 800px; 
+      max-width: 100%; 
+      min-height: 420px; 
+      background: #f3f3f3; 
+      border-radius: 8px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
+    }
+    .pdf-page-placeholder canvas { 
+      display: block; 
+      width: 100%; 
+      height: auto; 
+      border-radius: 6px; 
+      background: white; 
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .btn-action {
+      width: 100%;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 18px;
+    }
+    .btn.download {
+      background: var(--primary);
+      color: white;
+    }
+    .btn.save {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .btn.home {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body class="page preview-page">
+  <header class="topbar">
+    <button class="back-btn" onclick="navigateWithFade('es-signature.html')">←</button>
+    <h2 style="margin:0; font-size:18px;">Preview Dokumen</h2>
+  </header>
+
+  <main class="container">
+    <div class="preview-container">
+      <h3 class="doc-title">Pratinjau Dokumen Pengadaan ES</h3>
+      <div style="width:100%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+          <button id="prevPageBtn" class="btn" style="padding:6px 10px;border-radius:6px;">⟨ Prev</button>
+          <div id="pageIndicator" style="font-size:13px;color:#333;min-width:120px;text-align:center;">Halaman 1 / 1</div>
+          <button id="nextPageBtn" class="btn" style="padding:6px 10px;border-radius:6px;">Next ⟩</button>
+        </div>
+      </div>
+      <div id="pdfContainer" class="pdf-viewer" style="display:block;overflow:auto;background:#f6f6f6;padding:16px;">
+        <div id="pdfPages" style="display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;"></div>
+      </div>
+    </div>
+
+    <button type="button" class="btn download btn-action" onclick="handleDownloadPDF()">
+      Download PDF
+    </button>
+
+    <button type="button" class="btn save btn-action" onclick="handleSaveArchive()">
+      <span style="font-size:24px">🔖</span>
+      Simpan & Ajukan
+    </button>
+
+    <button type="button" class="btn home btn-action" onclick="navigateWithFade('home.html')">
+      Home
+    </button>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="js/es-pdf-builder.js"></script>
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 0;
+    async function renderPDF() {
+      try {
+        const esData = JSON.parse(localStorage.getItem('esFormData') || '{}');
+        const signature = localStorage.getItem('esSignature');
+        const flowchartSteps = [
+          { mulai: esData.mulai1 || '', selesai: esData.selesai1 || '', keterangan: esData.keterangan1 || '' },
+          { mulai: esData.mulai2 || '', selesai: esData.selesai2 || '', keterangan: esData.keterangan2 || '' },
+          { mulai: esData.mulai3 || '', selesai: esData.selesai3 || '', keterangan: esData.keterangan3 || '' },
+          { mulai: esData.mulai4 || '', selesai: esData.selesai4 || '', keterangan: esData.keterangan4 || '' },
+          { mulai: esData.mulai5 || '', selesai: esData.selesai5 || '', keterangan: esData.keterangan5 || '' },
+          { mulai: esData.mulai6 || '', selesai: esData.selesai6 || '', keterangan: esData.keterangan6 || '' },
+        ];
+        const requestData = {
+          namaPengguna: esData.namaPengguna || '',
+          alamat: esData.alamat || '',
+          tanggal: esData.tanggal || new Date().toISOString().split('T')[0],
+          namaPemberiLayanan: esData.namaPemberiLayanan || '',
+          flowchartSteps: flowchartSteps,
+          signature: signature || null
+        };
+        const blob = await generateESPDF(requestData);
+        const arrayBuffer = await blob.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        totalPages = pdfDoc.numPages;
+        document.getElementById('pageIndicator').textContent = `Halaman ${currentPage} / ${totalPages}`;
+        renderPage(currentPage);
+      } catch (error) {
+        console.error('Error rendering PDF:', error);
+        alert('Gagal menampilkan preview PDF: ' + error.message);
+      }
+    }
+    async function renderPage(pageNum) {
+      if (!pdfDoc) return;
+      try {
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 });
+        let pageContainer = document.getElementById(`page-${pageNum}`);
+        if (!pageContainer) {
+          pageContainer = document.createElement('div');
+          pageContainer.id = `page-${pageNum}`;
+          pageContainer.className = 'pdf-page-placeholder';
+          document.getElementById('pdfPages').appendChild(pageContainer);
+        }
+        pageContainer.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        const renderContext = { canvasContext: context, viewport: viewport };
+        await page.render(renderContext).promise;
+        pageContainer.appendChild(canvas);
+      } catch (error) {
+        console.error(`Error rendering page ${pageNum}:`, error);
+      }
+    }
+    function goToPage(pageNum) {
+      if (pageNum >= 1 && pageNum <= totalPages) {
+        currentPage = pageNum;
+        document.getElementById('pageIndicator').textContent = `Halaman ${currentPage} / ${totalPages}`;
+        renderPage(currentPage);
+      }
+    }
+    document.getElementById('prevPageBtn').onclick = () => goToPage(currentPage - 1);
+    document.getElementById('nextPageBtn').onclick = () => goToPage(currentPage + 1);
+    renderPDF();
+    function handleDownloadPDF() {
+      const btn = event.target.closest('button');
+      btn.disabled = true;
+      btn.innerHTML = '<span style="font-size:24px">⏳</span> Memproses...';
+      setTimeout(async () => {
+        try {
+          const esData = JSON.parse(localStorage.getItem('esFormData') || '{}');
+          const signature = localStorage.getItem('esSignature');
+          const flowchartSteps = [
+            { mulai: esData.mulai1 || '', selesai: esData.selesai1 || '', keterangan: esData.keterangan1 || '' },
+            { mulai: esData.mulai2 || '', selesai: esData.selesai2 || '', keterangan: esData.keterangan2 || '' },
+            { mulai: esData.mulai3 || '', selesai: esData.selesai3 || '', keterangan: esData.keterangan3 || '' },
+            { mulai: esData.mulai4 || '', selesai: esData.selesai4 || '', keterangan: esData.keterangan4 || '' },
+            { mulai: esData.mulai5 || '', selesai: esData.selesai5 || '', keterangan: esData.keterangan5 || '' },
+            { mulai: esData.mulai6 || '', selesai: esData.selesai6 || '', keterangan: esData.keterangan6 || '' },
+          ];
+          const requestData = {
+            namaPengguna: esData.namaPengguna || '',
+            alamat: esData.alamat || '',
+            tanggal: esData.tanggal || new Date().toISOString().split('T')[0],
+            namaPemberiLayanan: esData.namaPemberiLayanan || '',
+            flowchartSteps: flowchartSteps,
+            signature: signature || null
+          };
+          const blob = await generateESPDF(requestData);
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `PengadaanES-${requestData.namaPengguna || 'document'}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          alert('PDF berhasil diunduh!');
+        } catch (error) {
+          console.error('Error downloading PDF:', error);
+          alert('Gagal mengunduh PDF: ' + error.message);
+        }
+        btn.disabled = false;
+        btn.innerHTML = 'Download PDF';
+      }, 500);
+    }
+    function handleSaveArchive() {
+      const btn = event.target.closest('button');
+      btn.disabled = true;
+      btn.innerHTML = '<span style="font-size:24px">⏳</span> Menyimpan...';
+      setTimeout(() => {
+        (async () => {
+          try {
+            const esData = JSON.parse(localStorage.getItem('esFormData') || '{}');
+            if (typeof window.archiveDocument !== 'function') {
+              alert('Fungsi archive tidak tersedia');
+              return;
+            }
+
+            // Build the exact same PDF blob and store it for 1:1 preview in Arsip Dokumen
+            const signature = localStorage.getItem('esSignature') || null;
+            const flowchartSteps = [
+              { mulai: esData.mulai1 || '', selesai: esData.selesai1 || '', keterangan: esData.keterangan1 || '' },
+              { mulai: esData.mulai2 || '', selesai: esData.selesai2 || '', keterangan: esData.keterangan2 || '' },
+              { mulai: esData.mulai3 || '', selesai: esData.selesai3 || '', keterangan: esData.keterangan3 || '' },
+              { mulai: esData.mulai4 || '', selesai: esData.selesai4 || '', keterangan: esData.keterangan4 || '' },
+              { mulai: esData.mulai5 || '', selesai: esData.selesai5 || '', keterangan: esData.keterangan5 || '' },
+              { mulai: esData.mulai6 || '', selesai: esData.selesai6 || '', keterangan: esData.keterangan6 || '' },
+            ];
+            const requestData = {
+              namaPengguna: esData.namaPengguna || '',
+              alamat: esData.alamat || '',
+              tanggal: esData.tanggal || new Date().toISOString().split('T')[0],
+              namaPemberiLayanan: esData.namaPemberiLayanan || '',
+              flowchartSteps,
+              signature: signature || null
+            };
+
+            let pdfBlob;
+            if (typeof generateESPDF === 'function') {
+              pdfBlob = await generateESPDF(requestData);
+            }
+
+            window.archiveDocument({
+              serviceSlug: 'pengadaan-es',
+              serviceName: 'Pengadaan ES',
+              userName: esData.namaPengguna || 'Tanpa Nama',
+              data: esData,
+              fileName: `PengadaanES-${esData.namaPengguna || 'document'}.pdf`,
+              pdfBlob
+            });
+            alert('Data berhasil disimpan!');
+            navigateWithFade('home.html');
+          } catch (error) {
+            console.error('Error saving:', error);
+            alert('Gagal menyimpan: ' + (error && error.message ? error.message : error));
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span style="font-size:24px">🔖</span> Simpan';
+          }
+        })();
+      }, 500);
+    }
+  </script>
+</body>
+</html>

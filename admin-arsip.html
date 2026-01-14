@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arsip Admin - ARSIP PINTAR</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Arsip preview: show PDF instead of JSON */
+    .archive-preview .preview-body{ min-height: 360px; }
+    .archive-preview .pdf-frame{ width:100%; height: 70vh; min-height: 360px; border:0; background: transparent; border-radius: 12px; }
+    .archive-preview .pdf-fallback{ color:#666; font-size: 14px; margin: 0; }
+    .archive-preview{ width: min(720px, calc(100% - 32px)); }
+    .archive-preview .pdf-canvas-wrap{ width:100%; max-height: 70vh; min-height: 360px; border-radius: 12px; background: #f0fbfd; overflow: auto; padding: 10px; }
+    .archive-preview .pdf-canvas-wrap.hidden{ display:none; }
+    .archive-preview .pdf-canvas-wrap canvas{ display:block; margin: 0 auto 12px; max-width: 100%; height: auto; border-radius: 10px; background: #fff; }
+  </style>
+</head>
+<body class="page feature-page">
+  <header class="form-header stblkk-header">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('admin-home.html')">←</button>
+    <div class="header-text">
+      <p class="eyebrow">Arsip Admin</p>
+      <h1>Arsip Dokumen</h1>
+      <p class="subtitle">Semua dokumen yang sudah ditandatangani admin.</p>
+    </div>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="logo" class="form-logo" />
+  </header>
+
+  <main class="container stblkk-container archive-container">
+    <section class="intro-card">
+      <h2>Dokumen Terarsip</h2>
+      <p>Setiap formulir yang telah disetujui admin akan muncul di sini. Kamu bisa mencari berdasarkan nama pengguna, layanan, atau ID.</p>
+      <ul class="intro-list">
+        <li>Preview menampilkan PDF yang sudah ditandatangani.</li>
+        <li>Gunakan refresh untuk menyegarkan daftar arsip.</li>
+        <li>Hapus dokumen jika diperlukan.</li>
+      </ul>
+    </section>
+    <section class="archive-card card">
+      <div class="section-header-row">
+        <div>
+          <p class="section-eyebrow">Daftar Arsip</p>
+          <h2>Dokumen Ditandatangani</h2>
+          <p class="section-subtitle">Gunakan pencarian untuk menemukan dokumen.</p>
+        </div>
+        <button id="logoutBtn" class="btn ghost" type="button">Logout</button>
+      </div>
+
+      <div class="archive-controls">
+        <div class="search-field">
+          <input id="searchInput" placeholder="Cari nama pengguna, layanan, atau ID..." />
+        </div>
+        <div class="archive-actions">
+          <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="archiveList" class="archive-list"></div>
+    </section>
+  </main>
+
+  <aside id="archivePreview" class="archive-preview hidden" aria-live="polite">
+    <div class="preview-header">
+      <div>
+        <p class="section-eyebrow">Preview Dokumen</p>
+        <h3 id="previewTitle">-</h3>
+        <p id="previewMeta" class="preview-meta">—</p>
+      </div>
+      <button id="closePreview" class="btn ghost" type="button">Tutup</button>
+    </div>
+    <div class="preview-body">
+      <p id="previewHint" class="pdf-fallback">Pilih arsip untuk melihat pratinjau PDF.</p>
+      <div id="previewPdfCanvas" class="pdf-canvas-wrap hidden" aria-label="Preview PDF"></div>
+    </div>
+  </aside>
+
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script>
+    // Setup pdf.js worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+    }
+  </script>
+  <script src="js/script.js"></script>
+  <script>
+    const archiveList = document.getElementById('archiveList');
+    const searchInput = document.getElementById('searchInput');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const previewPanel = document.getElementById('archivePreview');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewMeta = document.getElementById('previewMeta');
+    const previewHint = document.getElementById('previewHint');
+    const previewPdfCanvas = document.getElementById('previewPdfCanvas');
+    const closePreview = document.getElementById('closePreview');
+
+    const archiveState = { items: [] };
+    let currentPreviewUrl = null;
+    let previewPdfDoc = null;
+    let activePreviewEntryId = null;
+
+    function findArchiveItemElByEntryId(entryId){
+      if(!entryId) return null;
+      const safeId = String(entryId).replace(/"/g, '\\"');
+      return archiveList ? archiveList.querySelector(`[data-entry-id="${safeId}"]`) : null;
+    }
+
+    function attachInlinePreview(entryId, triggerEl){
+      if(!previewPanel) return;
+      previewPanel.classList.add('archive-preview--inline');
+
+      let itemEl = null;
+      if(triggerEl && typeof triggerEl.closest === 'function'){
+        itemEl = triggerEl.closest('[data-entry-id]');
+      }
+      if(!itemEl) itemEl = findArchiveItemElByEntryId(entryId);
+
+      if(itemEl && itemEl.parentNode){
+        itemEl.insertAdjacentElement('afterend', previewPanel);
+        return;
+      }
+
+      if(archiveList && archiveList.parentNode){
+        archiveList.parentNode.appendChild(previewPanel);
+      }
+    }
+
+    function serviceNameFromSlug(slug) {
+      const map = {
+        'skkp': 'SKKP',
+        'pb': 'PB',
+        'pengadaan-es': 'Pengadaan ES',
+        'stblkk': 'STBLKK',
+        'shti-lt': 'SHTI LT',
+        'jasa-listrik': 'Jasa Listrik',
+        'penggunaan-arra': 'Penggunaan ARRA ES'
+      };
+      return map[String(slug || '').toLowerCase()] || (slug ? String(slug) : 'Dokumen');
+    }
+
+    function formatDate(iso) {
+      if(!iso) return '-';
+      const date = new Date(iso);
+      return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function revokePreviewUrl() {
+      if(currentPreviewUrl) {
+        try { URL.revokeObjectURL(currentPreviewUrl); } catch (e) {}
+        currentPreviewUrl = null;
+      }
+    }
+
+    function clearPdfCanvas() {
+      if(previewPdfDoc) {
+        try { previewPdfDoc.destroy(); } catch (e) {}
+        previewPdfDoc = null;
+      }
+      if(previewPdfCanvas) previewPdfCanvas.innerHTML = '';
+    }
+
+    async function renderPdfWithPdfJs(blob) {
+      if(!blob) return false;
+      if(!window.pdfjsLib || !previewPdfCanvas) return false;
+
+      clearPdfCanvas();
+      previewPdfCanvas.classList.remove('hidden');
+
+      const arrayBuffer = await blob.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      previewPdfDoc = pdf;
+
+      const containerWidth = Math.max(1, (previewPdfCanvas.clientWidth || 600) - 20);
+      const dpr = window.devicePixelRatio || 1;
+
+      for(let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = containerWidth / baseViewport.width;
+        const viewport = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = Math.floor(viewport.width * dpr);
+        canvas.height = Math.floor(viewport.height * dpr);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        previewPdfCanvas.appendChild(canvas);
+      }
+
+      return true;
+    }
+
+    async function fetchSignedPdfBlobAdmin(submissionId) {
+      const headers = {};
+      const token = (typeof window.getToken === 'function') ? window.getToken() : (localStorage.getItem('token') || '');
+      if(token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE}/api/admin/submissions/${submissionId}/signed-pdf`, { headers });
+      if(!res.ok) throw new Error('Gagal mengambil PDF bertanda tangan');
+      return await res.blob();
+    }
+
+    async function getPdfBlobForEntry(entry) {
+      if(!entry || !entry.__submissionId) return null;
+      return await fetchSignedPdfBlobAdmin(entry.__submissionId);
+    }
+
+    async function downloadEntry(entry) {
+      if(!entry) return;
+      try {
+        const blob = await getPdfBlobForEntry(entry);
+        if(blob) {
+          const name = entry.fileName && /\.pdf$/i.test(entry.fileName) ? entry.fileName : `${entry.serviceSlug || 'dokumen'}-${entry.id}.pdf`;
+          if(typeof window.downloadPdfBlob === 'function') {
+            window.downloadPdfBlob(blob, name);
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1200);
+          }
+          return;
+        }
+        alert('Tidak dapat mengunduh dokumen ini.');
+      } catch (e) {
+        console.error('Download error:', e);
+        alert('Gagal mengunduh: ' + (e.message || 'Error'));
+      }
+    }
+
+    async function deleteEntry(entry) {
+      if(!entry) return;
+      if(!confirm(`Hapus dokumen "${entry.serviceName}" dari ${entry.userName}?`)) return;
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = (typeof window.getToken === 'function') ? window.getToken() : (localStorage.getItem('token') || '');
+        if(token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`${API_BASE}/api/admin/submissions/${entry.__submissionId}`, {
+          method: 'DELETE',
+          headers
+        });
+
+        if(!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+
+        archiveState.items = archiveState.items.filter(item => item.__submissionId !== entry.__submissionId);
+        renderList();
+        alert('Dokumen berhasil dihapus.');
+      } catch (e) {
+        console.error('Delete error:', e);
+        alert('Gagal menghapus: ' + (e.message || 'Error'));
+      }
+    }
+
+    async function openPreview(entry, triggerEl) {
+      if(!entry) return;
+
+      activePreviewEntryId = entry.id;
+      attachInlinePreview(entry.id, triggerEl);
+
+      previewTitle.textContent = entry.serviceName || 'Dokumen Tanpa Nama';
+      previewMeta.textContent = `${entry.userName || 'Pengguna'} • ${formatDate(entry.savedAt)} • ID: ${entry.id}`;
+      previewPanel.classList.remove('hidden');
+      previewHint.textContent = 'Mempersiapkan pratinjau PDF...';
+      previewHint.classList.remove('hidden');
+      if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      clearPdfCanvas();
+      revokePreviewUrl();
+
+      try {
+        const blob = await getPdfBlobForEntry(entry);
+        if(!blob) {
+          previewHint.textContent = 'Tidak dapat memuat PDF.';
+          return;
+        }
+
+        const ok = await renderPdfWithPdfJs(blob);
+        if(ok) {
+          previewHint.classList.add('hidden');
+          return;
+        }
+
+        previewHint.textContent = 'Preview PDF tidak tersedia. Silakan gunakan Download.';
+        previewHint.classList.remove('hidden');
+        if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      } catch (error) {
+        console.error('Gagal preview PDF:', error);
+        previewHint.textContent = 'Tidak dapat membuat pratinjau PDF untuk dokumen ini.';
+        previewHint.classList.remove('hidden');
+        if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      }
+    }
+
+    function closePreviewPanel() {
+      previewPanel.classList.add('hidden');
+      activePreviewEntryId = null;
+      previewHint.classList.remove('hidden');
+      previewHint.textContent = 'Pilih arsip untuk melihat pratinjau PDF.';
+      if(previewPdfCanvas) previewPdfCanvas.classList.add('hidden');
+      clearPdfCanvas();
+      revokePreviewUrl();
+    }
+
+    function renderList() {
+      if(!archiveList) return;
+
+      const previewWasOpen = previewPanel && !previewPanel.classList.contains('hidden');
+      const previewId = activePreviewEntryId;
+      if(previewPanel && previewPanel.parentNode === archiveList){
+        previewPanel.remove();
+      }
+
+      archiveList.innerHTML = '';
+
+      const filtered = archiveState.items.filter(e => {
+        const q = (searchInput.value || '').toLowerCase().trim();
+        if(!q) return true;
+        const hay = [e.userName, e.serviceName, e.fileName, e.id].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+
+      if(!filtered.length) {
+        archiveList.innerHTML = '<div class="archive-empty">Belum ada dokumen di arsip.</div>';
+        return;
+      }
+
+      filtered.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'archive-item';
+        item.setAttribute('data-entry-id', entry.id);
+        const statusBadgeStyle = `display:inline-block; background-color:${entry.statusColor}; color:white; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-left:8px;`;
+        item.innerHTML = `
+          <div>
+            <strong style="display:block; font-size:15px; color:#0b3b3f;">
+              ${entry.serviceName || 'Layanan'}
+              <span style="${statusBadgeStyle}">${entry.statusLabel || 'Unknown'}</span>
+            </strong>
+            <div class="archive-item-meta">
+              ${entry.userName || 'Pengguna'} • ${formatDate(entry.savedAt)}
+            </div>
+          </div>
+          <div class="archive-item-actions">
+            ${entry.status === 'signed' ? `
+              <button class="btn secondary btn-preview">Preview</button>
+              <button class="btn primary btn-download">Download</button>
+              <button class="btn ghost btn-delete">Hapus</button>
+            ` : `
+              <button class="btn secondary btn-preview">Preview</button>
+              <button class="btn ghost btn-delete">Hapus</button>
+            `}
+          </div>
+        `;
+
+        const buttons = item.querySelectorAll('button');
+        const previewBtn = buttons[0];
+        const actionBtn = buttons[1];
+        
+        previewBtn.addEventListener('click', (e) => openPreview(entry, e.currentTarget));
+        
+        if (entry.status === 'signed') {
+          // downloadBtn is the second button for signed items
+          actionBtn.addEventListener('click', () => downloadEntry(entry));
+          const deleteBtn = buttons[2];
+          deleteBtn.addEventListener('click', () => deleteEntry(entry));
+        } else {
+          // only delete button for rejected items
+          actionBtn.addEventListener('click', () => deleteEntry(entry));
+        }
+        
+        archiveList.appendChild(item);
+
+        if(previewWasOpen && previewId && entry.id === previewId){
+          item.insertAdjacentElement('afterend', previewPanel);
+        }
+      });
+
+      if(previewWasOpen && previewId){
+        attachInlinePreview(previewId);
+      }
+    }
+
+    async function loadAdminArchive() {
+      try {
+        // Fetch both signed and rejected submissions
+        const signedRes = await apiGet('/api/admin/submissions?status=signed');
+        const rejectedRes = await apiGet('/api/admin/submissions?status=rejected');
+        
+        const signedItems = Array.isArray(signedRes && signedRes.items) ? signedRes.items : [];
+        const rejectedItems = Array.isArray(rejectedRes && rejectedRes.items) ? rejectedRes.items : [];
+        
+        // Combine and map both lists
+        const allItems = [
+          ...signedItems.map(r => ({
+            id: `signed-${r.id}`,
+            __submissionId: r.id,
+            serviceSlug: r.service_slug,
+            serviceName: serviceNameFromSlug(r.service_slug),
+            userName: r.user_name || 'Pengguna',
+            savedAt: r.signed_at || r.created_at,
+            fileName: r.file_name,
+            status: 'signed',
+            statusLabel: 'Disetujui',
+            statusColor: '#06a77d'
+          })),
+          ...rejectedItems.map(r => ({
+            id: `rejected-${r.id}`,
+            __submissionId: r.id,
+            serviceSlug: r.service_slug,
+            serviceName: serviceNameFromSlug(r.service_slug),
+            userName: r.user_name || 'Pengguna',
+            savedAt: r.rejected_at || r.created_at,
+            fileName: r.file_name,
+            status: 'rejected',
+            statusLabel: 'Ditolak',
+            statusColor: '#d63031'
+          }))
+        ];
+        
+        archiveState.items = allItems;
+        
+        // Sort by savedAt descending (newest first)
+        archiveState.items.sort((a, b) => {
+          const dateA = new Date(a.savedAt || 0);
+          const dateB = new Date(b.savedAt || 0);
+          return dateB - dateA; // descending order
+        });
+        
+        renderList();
+      } catch (e) {
+        archiveState.items = [];
+        renderList();
+        alert('Gagal memuat arsip admin: ' + (e.message || 'Error'));
+      }
+    }
+
+    async function ensureAdmin() {
+      try {
+        await apiGet('/api/admin/counts');
+        return true;
+      } catch (e) {
+        navigateWithFade('login.html');
+        return false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const ok = await ensureAdmin();
+      if(!ok) return;
+
+      await loadAdminArchive();
+
+      if(searchInput) {
+        searchInput.addEventListener('input', () => renderList());
+      }
+
+      if(refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+          refreshBtn.disabled = true;
+          await loadAdminArchive();
+          refreshBtn.disabled = false;
+        });
+      }
+
+      if(logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          if(confirm('Logout?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            navigateWithFade('login.html');
+          }
+        });
+      }
+
+      if(closePreview) {
+        closePreview.addEventListener('click', closePreviewPanel);
+      }
+    });
+  </script>
+</body>
+</html>

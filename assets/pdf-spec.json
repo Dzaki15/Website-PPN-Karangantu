@@ -1,0 +1,518 @@
+[
+  {
+    "file": "PB 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 122.62,
+        "y": 707.14,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 122.62,
+        "y": 691.66,
+        "fontSize": 11.04
+      },
+      "Persyaratan": {
+        "page": 1,
+        "x": 122.74,
+        "y": 676.3,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 48.24,
+          "y": 316.01
+        },
+        "tahapan": {
+          "x": 157.7,
+          "y": 316.01
+        },
+        "waktu": {
+          "x": 303.29,
+          "y": 316.01
+        },
+        "mulai": {
+          "x": 356.35,
+          "y": 316.01
+        },
+        "selesai": {
+          "x": 396.67,
+          "y": 316.01
+        },
+        "keterangan": {
+          "x": 439.78,
+          "y": 316.01
+        }
+      },
+      "fontSize": 10,
+      "lineHeight": 12,
+      "rowYs": [
+        458.23,
+        344.81,
+        239.33,
+        126.26
+      ]
+    },
+    "signature": {
+      "date": {
+        "page": 2,
+        "x": 400.67,
+        "y": 517.51
+      },
+      "penerimaLabel": {
+        "page": 2,
+        "x": 78.62,
+        "y": 486.67
+      },
+      "penerimaLine": {
+        "page": 2,
+        "x": 62.6,
+        "y": 382.01
+      },
+      "pemberiLabel": {
+        "page": 2,
+        "x": 330.67,
+        "y": 486.67
+      },
+      "pemberiLine": null
+    }
+  },
+  {
+    "file": "KARTU KENDALI Pengadaan ES 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 152.02,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 152.02,
+        "y": 150.26,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 77.66,
+          "y": 183.14
+        },
+        "tahapan": {
+          "x": 169.58,
+          "y": 183.14
+        },
+        "waktu": {
+          "x": 297.65,
+          "y": 183.14
+        },
+        "mulai": {
+          "x": 350.83,
+          "y": 183.14
+        },
+        "selesai": {
+          "x": 391.15,
+          "y": 183.14
+        },
+        "keterangan": {
+          "x": 434.23,
+          "y": 183.14
+        }
+      },
+      "rowYs": [
+        205.34,
+        250.82,
+        288.89,
+        311.93,
+        342.41,
+        365.45
+      ]
+    },
+    "signature": null
+  },
+  {
+    "file": "KARTU KENDALI Penggunaan aula ruang rapat asramaES 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 152.02,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 152.02,
+        "y": 150.26,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 77.66,
+          "y": 183.14
+        },
+        "tahapan": {
+          "x": 169.7,
+          "y": 183.14
+        },
+        "waktu": {
+          "x": 297.77,
+          "y": 183.14
+        },
+        "mulai": {
+          "x": 350.83,
+          "y": 183.14
+        },
+        "selesai": {
+          "x": 391.15,
+          "y": 183.14
+        },
+        "keterangan": {
+          "x": 434.23,
+          "y": 183.14
+        }
+      },
+      "rowYs": [
+        220.34,
+        265.85,
+        296.45,
+        326.93,
+        372.41,
+        425.45,
+        455.95
+      ]
+    },
+    "signature": null
+  },
+  {
+    "file": "STBLKK 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 122.62,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 122.62,
+        "y": 150.26,
+        "fontSize": 11.04
+      },
+      "Persyaratan": {
+        "page": 1,
+        "x": 122.74,
+        "y": 165.62,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 48.24,
+          "y": 291.17
+        },
+        "tahapan": {
+          "x": 157.7,
+          "y": 291.17
+        },
+        "waktu": {
+          "x": 303.29,
+          "y": 291.17
+        },
+        "mulai": {
+          "x": 356.35,
+          "y": 291.17
+        },
+        "selesai": {
+          "x": 396.67,
+          "y": 291.17
+        },
+        "keterangan": {
+          "x": 439.78,
+          "y": 291.17
+        }
+      },
+      "rowYs": [
+        305.09,
+        485.59,
+        566.71
+      ]
+    },
+    "signature": {
+      "date": {
+        "page": 2,
+        "x": 400.67,
+        "y": 429.89
+      },
+      "penerimaLabel": {
+        "page": 2,
+        "x": 78.62,
+        "y": 460.75
+      },
+      "penerimaLine": {
+        "page": 2,
+        "x": 62.6,
+        "y": 565.39
+      },
+      "pemberiLabel": {
+        "page": 2,
+        "x": 330.67,
+        "y": 460.75
+      },
+      "pemberiLine": null
+    }
+  },
+  {
+    "file": "KARTU KENDALI JASA LISTRIK 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 152.02,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 152.02,
+        "y": 150.26,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 77.66,
+          "y": 183.14
+        },
+        "tahapan": {
+          "x": 169.58,
+          "y": 183.14
+        },
+        "waktu": {
+          "x": 297.65,
+          "y": 183.14
+        },
+        "mulai": {
+          "x": 350.83,
+          "y": 183.14
+        },
+        "selesai": {
+          "x": 391.15,
+          "y": 183.14
+        },
+        "keterangan": {
+          "x": 434.23,
+          "y": 183.14
+        }
+      },
+      "rowYs": [
+        205.34,
+        235.82,
+        258.86,
+        274.37
+      ]
+    },
+    "signature": null
+  },
+  {
+    "file": "Kartu kendali SHTI 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 122.62,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 122.62,
+        "y": 150.26,
+        "fontSize": 11.04
+      },
+      "Persyaratan": {
+        "page": 1,
+        "x": 122.62,
+        "y": 165.62,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 48.24,
+          "y": 322.01
+        },
+        "tahapan": {
+          "x": 157.58,
+          "y": 322.01
+        },
+        "waktu": {
+          "x": 303.05,
+          "y": 322.01
+        },
+        "mulai": {
+          "x": 356.35,
+          "y": 322.01
+        },
+        "selesai": {
+          "x": 396.67,
+          "y": 322.01
+        },
+        "keterangan": {
+          "x": 439.78,
+          "y": 322.01
+        }
+      },
+      "rowYs": [
+        344.21,
+        412.25,
+        532.75,
+        623.26,
+        691.3,
+        759.34,
+        789.82
+      ]
+    },
+    "signature": {
+      "date": {
+        "page": 2,
+        "x": 400.67,
+        "y": 82.44
+      },
+      "penerimaLabel": {
+        "page": 2,
+        "x": 78.62,
+        "y": 113.3
+      },
+      "penerimaLine": {
+        "page": 2,
+        "x": 62.6,
+        "y": 217.94
+      },
+      "pemberiLabel": {
+        "page": 2,
+        "x": 330.67,
+        "y": 113.3
+      },
+      "pemberiLine": null
+    }
+  },
+  {
+    "file": "SKKP 2025.pdf",
+    "pageSize": {
+      "width": 595.32,
+      "height": 841.92
+    },
+    "infoFields": {
+      "Pengguna": {
+        "page": 1,
+        "x": 152.02,
+        "y": 134.78,
+        "fontSize": 11.04
+      },
+      "Alamat": {
+        "page": 1,
+        "x": 152.02,
+        "y": 150.26,
+        "fontSize": 11.04
+      },
+      "Persyaratan": {
+        "page": 1,
+        "x": 152.02,
+        "y": 165.62,
+        "fontSize": 11.04
+      }
+    },
+    "table": {
+      "headers": {
+        "no": {
+          "x": 77.66,
+          "y": 397.61
+        },
+        "tahapan": {
+          "x": 101.66,
+          "y": 397.61
+        },
+        "waktu": {
+          "x": 317.71,
+          "y": 397.61
+        },
+        "mulai": {
+          "x": 380.47,
+          "y": 397.61
+        },
+        "selesai": {
+          "x": 421.99,
+          "y": 397.61
+        },
+        "keterangan": {
+          "x": 465.82,
+          "y": 397.61
+        }
+      },
+      "rowYs": [
+        413.57,
+        459.07,
+        519.55,
+        610.03,
+        670.54
+      ],
+      "fontSize": 8.5,
+      "lineHeight": 10.2
+    },
+    "signature": {
+      "date": {
+        "page": 2,
+        "x": 430.07,
+        "y": 393.89
+      },
+      "penerimaLabel": {
+        "page": 2,
+        "x": 108.02,
+        "y": 424.73
+      },
+      "penerimaLine": {
+        "page": 2,
+        "x": 92.02,
+        "y": 529.39
+      },
+      "pemberiLabel": {
+        "page": 2,
+        "x": 360.07,
+        "y": 424.73
+      },
+      "pemberiLine": null
+    }
+  }
+]

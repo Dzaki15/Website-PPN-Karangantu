@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tanda Tangan STBLKK - ARSIP PINTAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page skkp-page">
+  <header class="form-header">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <h2 class="form-title-small">Tanda Tangan STBLKK</h2>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="logo" class="form-logo" style="height:36px;width:auto;object-fit:contain;" />
+  </header>
+
+  <main class="container skkp-container">
+    <h3 class="subsection-title" style="text-align:center;">Silakan tanda tangan</h3>
+    
+    <div class="signature-box">
+      <canvas id="signatureCanvas" width="100" height="100"></canvas>
+      <p class="signature-instruction">Atau upload file tanda tangan</p>
+      <label class="upload-btn">
+        <input type="file" id="signatureUpload" accept="image/*" style="display:none;">
+        <span>↓</span>
+      </label>
+    </div>
+
+    <div class="action-buttons">
+      <button type="button" class="btn secondary" onclick="resetSignature()">Reset</button>
+      <button type="button" class="btn primary" onclick="saveSignature()">Selanjutnya</button>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    const canvas = document.getElementById('signatureCanvas');
+    const sig = (typeof window.setupSignatureCanvas === 'function')
+      ? window.setupSignatureCanvas(canvas, { strokeStyle: '#000', lineWidth: 2 })
+      : null;
+
+    document.getElementById('signatureUpload').addEventListener('change', (e)=>{
+      const file=e.target.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        if (sig) {
+          sig.loadDataUrl(ev.target.result);
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        const img=new Image();
+        img.onload=()=>{
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+          const rect=canvas.getBoundingClientRect();
+          const scale=Math.min(rect.width/img.width, rect.height/img.height);
+          const x=(rect.width - img.width*scale)/2;
+          const y=(rect.height - img.height*scale)/2;
+          ctx.drawImage(img,x,y,img.width*scale,img.height*scale);
+        };
+        img.src=ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function resetSignature(){
+      if (sig) {
+        sig.clear();
+      } else {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      }
+      document.getElementById('signatureUpload').value='';
+    }
+
+    function goBack(){
+      navigateWithFade('stblkk.html');
+    }
+
+    function saveSignature(){
+      const dataUrl = sig ? sig.toDataUrl() : canvas.toDataURL('image/png');
+      if(!dataUrl){
+        alert('Silakan bubuhkan tanda tangan terlebih dahulu!');
+        return;
+      }
+      try { localStorage.setItem('stblkkSignature', dataUrl); } catch(e) {}
+      navigateWithFade('stblkk-preview.html');
+    }
+  </script>
+</body>
+</html>

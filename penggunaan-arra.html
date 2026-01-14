@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Penggunaan ARRA ES - ARSIP PINTAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page arra-page">
+  <header class="form-header stblkk-header">
+    <button class="back-btn" type="button" aria-label="Kembali" onclick="navigateWithFade('home.html')">←</button>
+    <div class="header-text">
+      <p class="eyebrow">Formulir Persetujuan</p>
+      <h1>Penggunaan ARRA ES</h1>
+      <p class="subtitle">Isi data, catat tahapan, lalu tanda tangan dan unduh.</p>
+    </div>
+    <img src="assets/Kementerian Kelautan dan Perikanan (KKP) Republik Indonesia.png" alt="Logo KKP" class="form-logo" />
+  </header>
+
+  <main class="container stblkk-container arra-container">
+    <section class="intro-card">
+      <h2>Lengkapi persetujuan penggunaan ruangan</h2>
+      <p>Isi data pengguna, catat waktu mulai/selesai pada tiap langkah, lalu tanda tangan sebelum mengunduh dokumen.</p>
+      <ul class="intro-list">
+        <li>Form mengikuti alur resmi pelayanan ruangan di PPN Karangantu.</li>
+        <li>Setiap langkah mencatat estimasi waktu dan keterangan lapangan.</li>
+        <li>Di akhir proses, unduh PDF atau simpan sebagai arsip.</li>
+      </ul>
+    </section>
+
+    <section class="progress-track arra-progress" id="arraProgress">
+      <div class="progress-step active"><span class="step-index">1</span><span class="step-label">Data</span></div>
+      <div class="progress-step"><span class="step-index">2</span><span class="step-label">Proses</span></div>
+      <div class="progress-step"><span class="step-index">3</span><span class="step-label">Tanda Tangan</span></div>
+      <div class="progress-step"><span class="step-index">4</span><span class="step-label">Download</span></div>
+    </section>
+
+    <form id="arraForm" class="arra-flow-form" novalidate>
+      <section class="arra-step active" data-step="0">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 1</p>
+              <h3>Data Pengguna & Petugas</h3>
+              <p class="section-subtitle">Informasi dasar yang wajib diisi sebelum memulai proses.</p>
+            </div>
+            <span class="badge badge-primary">Wajib</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Nama Pengguna*</span>
+              <input type="text" name="namaPengguna" required placeholder="Nama pemohon layanan" />
+            </label>
+            <label class="form-field">
+              <span>Alamat*</span>
+              <input type="text" name="alamatPengguna" required placeholder="Alamat lengkap" />
+            </label>
+            <label class="form-field">
+              <span>Tanggal Penggunaan*</span>
+              <input type="date" name="tanggalPenggunaan" required />
+            </label>
+            <label class="form-field">
+              <span>Nama Pemberi Layanan*</span>
+              <input type="text" name="namaPemberiLayanan" required placeholder="Petugas penanggung jawab" />
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev" disabled>Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="1">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 2</p>
+              <h3>Pengajuan ke Petugas Pelayanan</h3>
+              <p class="section-subtitle">Menyampaikan permohonan melalui surat/medios ke Petugas Pelayanan Jasa untuk menggunakan balai pertemuan nelayan/rumah tamu.</p>
+            </div>
+            <span class="badge">Waktu 15 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="pengajuanMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="pengajuanSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="pengajuanCatatan" rows="3" placeholder="Contoh: Surat dikirim via email resmi."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="2">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 3</p>
+              <h3>Login ke Aplikasi SIPANDU</h3>
+              <p class="section-subtitle">Mengarahkan pemohon untuk login ke aplikasi SIPANDU dan menyiapkan booking order.</p>
+            </div>
+            <span class="badge">Waktu 10 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="loginMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="loginSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="loginCatatan" rows="3" placeholder="Catat akun yang digunakan atau kendala akses."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="3">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 4</p>
+              <h3>Input Booking Order</h3>
+              <p class="section-subtitle">Melakukan input booking order ke aplikasi SIPANDU.</p>
+            </div>
+            <span class="badge">Waktu 5 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="bookingMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="bookingSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="bookingCatatan" rows="3" placeholder="Isi nomor booking order atau referensi lain."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="4">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 5</p>
+              <h3>Pemeriksaan dan Billing</h3>
+              <p class="section-subtitle">Melakukan pemeriksaan order dan mengeluarkan billing pelayanan.</p>
+            </div>
+            <span class="badge">Waktu 5 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="pemeriksaanMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="pemeriksaanSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="pemeriksaanCatatan" rows="3" placeholder="Misal: nomor billing atau koreksi data."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="5">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 6</p>
+              <h3>Pembayaran SIPANDU</h3>
+              <p class="section-subtitle">Melakukan pembayaran sesuai billing ke kas negara dan mengunggah bukti bayar pada aplikasi SIPANDU.</p>
+            </div>
+            <span class="badge">Waktu 15 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="pembayaranMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="pembayaranSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="pembayaranCatatan" rows="3" placeholder="Contoh: kanal pembayaran dan nomor bukti."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="6">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 7</p>
+              <h3>Validasi Bendahara Penerima</h3>
+              <p class="section-subtitle">Bendahara penerima merevalidasi bukti bayar dan menyelesaikan proses pada aplikasi SIPANDU.</p>
+            </div>
+            <span class="badge">Waktu 5 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="validasiMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="validasiSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="validasiCatatan" rows="3" placeholder="Catat nama bendahara dan hasil verifikasi."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="7">
+        <article class="service-card">
+          <div class="section-header-row">
+            <div>
+              <p class="section-eyebrow">Langkah 8</p>
+              <h3>Penerimaan Bukti Pembayaran</h3>
+              <p class="section-subtitle">Menerima bukti pembayaran final dari bendahara penerima.</p>
+            </div>
+            <span class="badge">Waktu 2 menit</span>
+          </div>
+          <div class="input-grid two">
+            <label class="form-field">
+              <span>Mulai</span>
+              <input type="time" name="buktiMulai" />
+            </label>
+            <label class="form-field">
+              <span>Selesai</span>
+              <input type="time" name="buktiSelesai" />
+            </label>
+            <label class="form-field full">
+              <span>Keterangan</span>
+              <textarea name="buktiCatatan" rows="3" placeholder="Catat nomor bukti dan media penerimaan."></textarea>
+            </label>
+          </div>
+        </article>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Sebelumnya</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="8">
+        <div class="section-header-row">
+          <div>
+            <p class="section-eyebrow">Tanda Tangan</p>
+            <h3>Silakan tanda tangan Penerima Layanan</h3>
+            <p class="section-subtitle">Gunakan kanvas atau unggah file tanda tangan.</p>
+          </div>
+        </div>
+        <canvas id="signatureCanvas" width="520" height="200" aria-label="Bidang tanda tangan"></canvas>
+        <div class="signature-actions">
+          <button type="button" class="btn secondary" id="signatureSave">Simpan</button>
+          <button type="button" class="btn primary" id="signatureReset">Reset</button>
+        </div>
+        <label class="form-field file-label">
+          <span>Atau upload file tanda tangan</span>
+          <input type="file" id="signatureUpload" accept="image/*" />
+        </label>
+        <div class="nav-buttons">
+          <button type="button" class="btn secondary" data-action="prev">Kembali</button>
+          <button type="button" class="btn primary" data-action="next">Selanjutnya</button>
+        </div>
+      </section>
+
+      <section class="arra-step" data-step="9">
+        <article class="service-summary card">
+          <div>
+            <p class="section-eyebrow">Langkah 10</p>
+            <h3>Halaman Download</h3>
+            <p class="section-subtitle">Pratinjau dokumen sebelum mengunduh</p>
+          </div>
+          
+          <!-- Inline PDF Preview -->
+          <div id="pdfPreviewContainer" class="pdf-preview-container" style="margin: 20px 0; border: 2px solid #06b0b8; border-radius: 8px; padding: 15px; background: #f9f9f9; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center; color: #999;">
+              <p>Mempersiapkan preview PDF...</p>
+            </div>
+          </div>
+
+          <div class="pdf-preview-controls" style="margin: 15px 0; display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 14px;">
+            <button type="button" class="btn secondary" id="pdfPrevPage" style="padding: 8px 12px; font-size: 14px;">‹ Sebelumnya</button>
+            <span id="pdfPageIndicator" style="color: #666;">Halaman 1</span>
+            <button type="button" class="btn secondary" id="pdfNextPage" style="padding: 8px 12px; font-size: 14px;">Selanjutnya ›</button>
+          </div>
+
+          <ul class="hero-points dark-text">
+            <li>Pastikan seluruh langkah di atas sudah dicatat.</li>
+            <li>Gunakan tombol unduh untuk menyimpan salinan digital.</li>
+            <li>Fitur simpan draf membantu melanjutkan proses nanti.</li>
+          </ul>
+        </article>
+        <div class="download-actions" style="flex-direction:column; gap:10px;">
+          <button type="button" class="btn primary" id="arraDownload">Download</button>
+          <button type="button" class="btn secondary" id="arraSave">Simpan & Ajukan</button>
+          <button type="button" class="btn secondary" id="arraHome">Beranda</button>
+          <button type="button" class="btn ghost" id="arraReset">Reset</button>
+        </div>
+      </section>
+    </form>
+
+    <div id="arraToast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="assets/pdf-lib.min.js"></script>
+  <script src="assets/pdfjs/pdf.min.js"></script>
+  <script src="js/penggunaan-arra-pdf-builder.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/penggunaan-arra.js"></script>
+  <script>
+    // Setup pdf.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js';
+  </script>
+</body>
+</html>
