@@ -11,11 +11,23 @@ function navigateWithFade(url){
   
   // API helpers
   // Backend API base URL.
-  // Default: http://127.0.0.1:8080 (fallback to :8081 if :8080 is busy)
+  // - On production (served over http/https), use same-origin so /api/* hits the deployed server.
+  // - On local dev (opened via file:// or when you want a specific server), fall back to localhost ports.
   // To force a specific base: set window.API_BASE_OVERRIDE in browser console before loading pages.
-  const DEFAULT_API_BASES = ['http://127.0.0.1:8080', 'http://127.0.0.1:8081'];
+  const LOCAL_API_BASES = ['http://127.0.0.1:8080', 'http://127.0.0.1:8081'];
   const API_BASE_OVERRIDE = (typeof window !== 'undefined' && window.API_BASE_OVERRIDE) ? window.API_BASE_OVERRIDE : '';
   const API_BASE_STORAGE_KEY = 'apiBase';
+
+  function getSameOriginBase(){
+    try {
+      if (typeof window === 'undefined' || !window.location) return '';
+      const protocol = window.location.protocol;
+      if (protocol !== 'http:' && protocol !== 'https:') return '';
+      return `${protocol}//${window.location.host}`;
+    } catch (e){
+      return '';
+    }
+  }
 
   function normalizeApiBase(value){
     if(!value) return '';
@@ -24,17 +36,18 @@ function navigateWithFade(url){
     return trimmed;
   }
 
+  const SAME_ORIGIN_BASE = getSameOriginBase();
+
   const storedApiBase = (typeof localStorage !== 'undefined')
     ? normalizeApiBase(localStorage.getItem(API_BASE_STORAGE_KEY) || '')
     : '';
-  const storedAllowed = storedApiBase && DEFAULT_API_BASES.includes(storedApiBase) ? storedApiBase : '';
 
-  // If we ever stored a wrong API base, remove it so the app falls back to :8080.
-  if(storedApiBase && !storedAllowed){
-    try { localStorage.removeItem(API_BASE_STORAGE_KEY); } catch(e) {}
-  }
-
-  let API_BASE = normalizeApiBase(API_BASE_OVERRIDE) || storedAllowed || DEFAULT_API_BASES[0];
+  // Default priority:
+  // 1) API_BASE_OVERRIDE (explicit)
+  // 2) stored API base
+  // 3) same-origin when served over http/https
+  // 4) localhost dev default
+  let API_BASE = normalizeApiBase(API_BASE_OVERRIDE) || storedApiBase || SAME_ORIGIN_BASE || LOCAL_API_BASES[0];
   const LOCAL_USERS_KEY = 'localUsers';
   function getToken(){
     return localStorage.getItem('token') || '';
@@ -132,7 +145,9 @@ function navigateWithFade(url){
       // If the default port is busy (common on Windows), retry once using the fallback base.
       // Do not override when the user explicitly sets API_BASE_OVERRIDE.
       if(!API_BASE_OVERRIDE){
-        const fallbacks = DEFAULT_API_BASES.filter(b => b !== API_BASE);
+        // Only use localhost fallbacks in local-dev mode.
+        const canUseLocalFallbacks = !SAME_ORIGIN_BASE || API_BASE.startsWith('http://127.0.0.1') || API_BASE.startsWith('http://localhost');
+        const fallbacks = canUseLocalFallbacks ? LOCAL_API_BASES.filter(b => b !== API_BASE) : [];
         const nextBase = fallbacks[0];
         if(nextBase){
           try {
